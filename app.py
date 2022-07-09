@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, flash
+from flask import Flask, redirect, render_template, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 from spotifyGroupChatSecrets import SECRET_KEY
 from models import connect_db, db, User
@@ -33,7 +33,8 @@ def signup_user():
 
     db.session.add(new_user)
     db.session.commit()
-    flash("Welcome! Successfully create you account!")
+    session['user_id'] = new_user.id
+    flash("Welcome! Successfully create you account!", 'success')
     return redirect('/')
 
   return render_template("users/signup.html", form=form)
@@ -48,7 +49,22 @@ def login_user():
     user = User.authenticate(username=username, password=password)
     
     if user:
-      return redirect('/')
+      flash("Logged in", 'success')
+      session['user_id'] = user.id
+      return redirect('/playlists')
     else:
       form.username.errors = ["Invalid username/password"]
   return render_template("users/login.html",form=form)
+
+@app.route('/logout')
+def logout_user():
+  session.pop('user_id')
+  return redirect('/')
+
+@app.route('/playlists')
+def show_playlists():
+  """Show list of playlists"""
+  if "user_id" not in session:
+    flash("Please log in", 'warning')
+    return redirect('/')
+  return render_template("playlists.html")
