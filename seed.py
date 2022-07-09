@@ -8,9 +8,9 @@ db.drop_all()
 db.create_all()
 
 # Add users
-bobeode = User(username="bobeode")
-wolfgang = User(username="wolfgang")
-yikem = User(username="yikem")
+bobeode = User.register(username="bobeode",password="password")
+wolfgang = User.register(username="wolfgang",password="password")
+yikem = User.register(username="yikem",password="password")
 
 db.session.add(bobeode)
 db.session.add(wolfgang)

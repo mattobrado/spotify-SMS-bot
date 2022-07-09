@@ -1,8 +1,11 @@
 """SQLAlchemy models"""
 
+import bcrypt
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 
 db = SQLAlchemy() # Create database object
+bcrypt = Bcrypt() # Create bcrypt object
 
 def connect_db(app):
   """Connect database to the Flask app"""
@@ -17,10 +20,20 @@ class User(db.Model):
 
   id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.Text, nullable=False)
+  password = db.Column(db.Text, nullable=False)
 
   # One user can have many playlists
   # Playlists be deleted once they are no longer associated with a user.
   playlists = db.relationship("Playlist", backref="user", cascade="all, delete-orphan")
+
+  @classmethod
+  def register(cls, username, password):
+    """Register user with hashed password & return User object"""
+
+    hashed = bcrypt.generate_password_hash(password)
+    hashed_utf8 = hashed.decode("utf8") # Convert bytestring into unicode utf8 string
+
+    return cls(username=username,password=hashed_utf8)
 
 class Playlist(db.Model):
   """Playlist"""
