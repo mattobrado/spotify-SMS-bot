@@ -11,6 +11,23 @@
         href="https://unpkg.com/bootstrap/dist/css/bootstrap.css">
 </head>
 <body>
+<nav class="navbar navbar-expand">
+  <div class="container">
+    <div class="navbar-header">
+      <a href="/" class="navbar-brand">
+        <span>Spotify GroupChat</span>
+      </a>
+    </div>
+    <ul class="nav navbar-nav narbar-right">
+      {% if session['user_id'] %}
+        <li><a href="/logout">Log out</a></li>
+      {% else %}
+        <li><a href="/signup">Sign up</a></li>
+        <li><a href="/login">Log in</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>
 <div class="container">
   {% for category, message in get_flashed_messages(with_categories=True) %}
   <div class="alert alert-{{ category }}">{{ message }}</div>
