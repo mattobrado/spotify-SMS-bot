@@ -22,17 +22,33 @@ def root():
   """Show homepage"""
   return render_template("homepage.html")
 
-@app.route('/register', methods=["Get", "POST"])
-def register_user():
+@app.route('/signup', methods=["Get", "POST"])
+def signup_user():
+  """Regiter new user"""
   form = UserForm()
   if form.validate_on_submit():
     username = form.username.data
     password = form.password.data
-    new_user = User.register(username=username, password=password)
+    new_user = User.signup(username=username, password=password)
 
     db.session.add(new_user)
     db.session.commit()
     flash("Welcome! Successfully create you account!")
     return redirect('/')
 
-  return render_template("register.html", form=form)
+  return render_template("users/signup.html", form=form)
+
+@app.route('/login', methods=["GET", "POST"])
+def login_user():
+  """Login for user"""
+  form = UserForm()
+  if form.validate_on_submit():
+    username = form.username.data
+    password = form.password.data
+    user = User.authenticate(username=username, password=password)
+    
+    if user:
+      return redirect('/')
+    else:
+      form.username.errors = ["Invalid username/password"]
+  return render_template("users/login.html",form=form)

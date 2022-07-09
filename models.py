@@ -45,7 +45,7 @@ class User(db.Model):
     user = User.query.filter_by(username=username).first() # Get User with username
 
     # If no user is found, return False
-    if user:
+    if not user:
       return False
     
     # If password is correct, return User object
