@@ -3,6 +3,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from spotifyGroupChatSecrets import SECRET_KEY
 from models import Playlist, connect_db, db, User
 from forms import UserForm, PlaylistForm
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__) # Create Flask object
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///spotify_group_chat' # PSQL database
@@ -29,10 +30,16 @@ def signup_user():
   if form.validate_on_submit():
     username = form.username.data
     password = form.password.data
-    new_user = User.signup(username=username, password=password)
+    new_user = User.register(username=username, password=password)
 
     db.session.add(new_user)
-    db.session.commit()
+
+    try:
+      db.session.commit()
+    except IntegrityError:
+      form.username.errors.append('Username taken.')
+      return render_template('users/signup.html', form=form)
+    
     session['user_id'] = new_user.id
     flash('Welcome! Successfully create you account!', 'success')
     return redirect('/')
