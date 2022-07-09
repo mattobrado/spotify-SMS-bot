@@ -1,3 +1,5 @@
+"""SQLAlchemy models"""
+
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy() # Create database object
@@ -26,7 +28,8 @@ class Playlist(db.Model):
   __tablename__ = "playlists"
 
   id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.Text, nullable=False)
+  title = db.Column(db.Text, nullable=False)
+  user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
   # Two-way relationship between playlists and songs
   songs = db.relationship(
@@ -42,7 +45,7 @@ class Song(db.Model):
   __tablename__ = "songs"
   
   id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.Text, nullable=False)
+  title = db.Column(db.Text, nullable=False)
   artist = db.Column(db.Text, nullable=False)
 
 class PlaylistSong(db.Model):
