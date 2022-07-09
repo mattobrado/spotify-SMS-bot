@@ -30,10 +30,29 @@ class User(db.Model):
   def register(cls, username, password):
     """Register user with hashed password & return User object"""
 
-    hashed = bcrypt.generate_password_hash(password)
-    hashed_utf8 = hashed.decode("utf8") # Convert bytestring into unicode utf8 string
+    hashed_password = bcrypt.generate_password_hash(password) # Hash password using bcrypt
+    hashed_password_utf8 = hashed_password.decode("utf8") # Convert bytestring into unicode utf8 string
 
-    return cls(username=username,password=hashed_utf8)
+    return cls(username=username,password=hashed_password_utf8)
+
+  @classmethod
+  def authenticate(cls, username, password):
+    """Validate that user exists & password is correct.
+    
+    Returns User object if valid, else returns False.
+    """
+
+    user = User.query.filter_by(username=username).first() # Get User with username
+
+    # If no user is found, return False
+    if user:
+      return False
+    
+    # If password is correct, return User object
+    if bcrypt.check_password_hash(user.password, password):
+      return user
+    else:
+      return False # Password was incorrect, return False
 
 class Playlist(db.Model):
   """Playlist"""
