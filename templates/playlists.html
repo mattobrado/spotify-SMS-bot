@@ -3,6 +3,31 @@
 {% block title %}Playlists{% endblock %}
 
 {% block content %}
+<form method="POST">
+  {{ form.hidden_tag() }}
+
+  {% for field in form if field.widget.input_type != 'hidden' %}
+    {% for error in field.errors %}
+      <span class="text-danger">{{ error }}</span>
+    {% endfor %}
+    {{ field(placeholder=field.label.text, class="form-control") }}
+  {% endfor %}
+
+  <button class="btn btn-primary" type="submit">Add Playlist</button>
+</form>
 
 <h1>Playlists</h1>
+
+<ul>
+  {% for playlist in playlists %}
+  <li>{{ playlist.title }} by {{ playlist.user.username }}
+    {% if session['user_id'] == playlist.user_id %}
+    <form action="/playlists/{{ playlist.id }}/delete" style="display:inline;" method="POST">
+      <button class="btn btn-sm btn-danger">Delete playlist</button>
+    </form>
+    {% endif %}
+  </li>
+  
+  {% endfor %}
+</ul>
 {% endblock %}

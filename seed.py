@@ -18,7 +18,7 @@ db.session.add(yikem)
 db.session.commit()
 
 # Add playlists
-road_trip = Playlist(title="Road_Trip", user_id=1)
+road_trip = Playlist(title="Road Trip", user_id=1)
 cooking = Playlist(title="Cooking", user_id=2)
 party = Playlist(title="party", user_id=3)
 
