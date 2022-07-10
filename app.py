@@ -2,7 +2,7 @@
 
 from flask import Flask, redirect, render_template, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
-from spotifyGroupChatSecrets import SECRET_KEY
+from mysecrets import SECRET_KEY
 from sqlalchemy.exc import IntegrityError
 
 from models import Playlist, connect_db, db, User
@@ -19,6 +19,7 @@ toolbar = DebugToolbarExtension(app) # Create debug toolbar object
 
 connect_db(app) # Connect database to Flask object 
 db.create_all() # Create all tables
+
 
 @app.route('/')
 def root():
@@ -124,3 +125,9 @@ def delete_playlist(id):
     flash('You cannot delete that playlist')
 
   return redirect('/playlists')
+
+@app.route('/user')
+def user_page():
+  """Show a user's profile"""
+
+  return 'User page'
