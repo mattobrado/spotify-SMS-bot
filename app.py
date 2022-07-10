@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from models import Playlist, connect_db, db, User
 from forms import UserForm, PlaylistForm
-from spotify import AUTHORIZATION_URL, get_access_and_refresh_tokens, get_users_profile
+from spotify import AUTHORIZATION_URL, get_access_and_refresh_tokens, get_profile_data
 
 app = Flask(__name__) # Create Flask object
 
@@ -64,6 +64,21 @@ def callback():
   auth_header = get_access_and_refresh_tokens(auth_token)
   session['auth_header'] = auth_header
 
+  profile_data = get_profile_data(auth_header) 
+
+  display_name = profile_data['display_name']
+  email = profile_data['email']
+  profile_url = profile_data['external_urls']['spotify']
+
+  user = User.query.filter_by(email=email).first()
+
+  if not user:
+    new_user = User(display_name=display_name, email=email, profile_url=profile_url) # Create User object
+    db.session.add(new_user) # Add User
+    db.session.commit()
+  
+  session['user_id'] = user.id
+
   return redirect('/profile')
 
 
@@ -71,12 +86,8 @@ def callback():
 def show_profile():
   """Show a user's profile"""
 
-  if 'auth_header' in session:
-    auth_header = session['auth_header']
-    profile_data = get_users_profile(auth_header)
-
-  # raise
-  return 'User page'
+  user = User.query.get_or_404(session['user_id'])
+  return render_template('profile.html', user=user)
 
 
 @app.route('/signup', methods=['Get', 'POST'])

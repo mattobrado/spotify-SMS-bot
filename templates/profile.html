@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Profile{% endblock %}
+{% block title %}{{ user.display_name }}{% endblock %}
 
 {% block content %}
-<h1>Profile</h1>
+<h1>{{ user.display_name }}</h1>
 
 <ul>
-  {% for playlist in playlists %}
+  {% for playlist in user.playlists %}
   <li>{{ playlist.title }} by {{ playlist.user.username }}
     {% if session['user_id'] == playlist.user_id %}
     <form action="/playlists/{{ playlist.id }}/delete" style="display:inline;" method="POST">

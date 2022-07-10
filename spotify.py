@@ -57,7 +57,10 @@ def get_access_and_refresh_tokens(code):
   auth_header = {"Authorization": f"Bearer {access_token}"}
   return auth_header
 
-def get_users_profile(auth_header):
-    url = USER_PROFILE_ENDPOINT
-    resp = requests.get(url, headers=auth_header)
-    return resp.json()
+
+# -------------------------- DATA REQUESTS ---------------------------
+def get_profile_data(auth_header):
+  """Make a request to the spotify API and return profile data"""
+
+  resp = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header)
+  return resp.json() # Use .json() to convert to a python Dict

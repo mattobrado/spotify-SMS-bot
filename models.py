@@ -13,47 +13,21 @@ def connect_db(app):
   db.app = app # Connect database to Flask object
   db.init_app(app) # Initialize database
 
+
 class User(db.Model):
-  """Model to hold spotify user data
-  """
+  """Model to hold spotify user data"""
 
   __tablename__ = "users"
 
   id = db.Column(db.Integer, primary_key=True)
-  username = db.Column(db.Text, nullable=False, unique=True)
-  password = db.Column(db.Text, nullable=False)
+  display_name = db.Column(db.Text, nullable=False)
+  email = db.Column(db.Text, nullable=False, unique=True)
+  profile_url = db.Column(db.Text, nullable=False)
 
   # One user can have many playlists
-  # Playlists be deleted once they are no longer associated with a user.
+  # Playlists are deleted once they are no longer associated with a user.
   playlists = db.relationship("Playlist", backref="user", cascade="all, delete-orphan")
 
-  @classmethod
-  def register(cls, username, password):
-    """Register user with hashed password & return User object"""
-
-    hashed_password = bcrypt.generate_password_hash(password) # Hash password using bcrypt
-    hashed_password_utf8 = hashed_password.decode("utf8") # Convert bytestring into unicode utf8 string
-
-    return cls(username=username,password=hashed_password_utf8)
-
-  @classmethod
-  def authenticate(cls, username, password):
-    """Validate that user exists & password is correct.
-    
-    Returns User object if valid, else returns False.
-    """
-
-    user = User.query.filter_by(username=username).first() # Get User with username
-
-    # If no user is found, return False
-    if not user:
-      return False
-    
-    # If password is correct, return User object
-    if bcrypt.check_password_hash(user.password, password):
-      return user
-    else:
-      return False # Password was incorrect, return False
 
 class Playlist(db.Model):
   """Playlist"""
