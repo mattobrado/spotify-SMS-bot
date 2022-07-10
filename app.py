@@ -1,12 +1,13 @@
 """Spotify GroupChat app"""
 
-from flask import Flask, redirect, render_template, flash, session
+from flask import Flask, redirect, render_template, flash, session, request
 from flask_debugtoolbar import DebugToolbarExtension
 from mysecrets import SECRET_KEY
 from sqlalchemy.exc import IntegrityError
 
 from models import Playlist, connect_db, db, User
 from forms import UserForm, PlaylistForm
+from spotify import AUTHORIZATION_URL, request_access_and_refresh_tokens
 
 app = Flask(__name__) # Create Flask object
 
@@ -60,23 +61,34 @@ def signup_user():
 def login_user():
   """Get login form and handle input"""
 
-  form = UserForm() # Form for getting username and password
+  # form = UserForm() # Form for getting username and password
   
-  if form.validate_on_submit():
-    username = form.username.data.lower() # make username all lowercase
-    password = form.password.data
-    user = User.authenticate(username=username, password=password) # Get User object
+  # if form.validate_on_submit():
+  #   username = form.username.data.lower() # make username all lowercase
+  #   password = form.password.data
+  #   user = User.authenticate(username=username, password=password) # Get User object
     
-    # If User.autheticate() returned a User object
-    if user:
-      flash('Logged in', 'success')
-      session['user_id'] = user.id # add user's id'to session
-      return redirect('/playlists')
+  #   # If User.autheticate() returned a User object
+  #   if user:
+  #     flash('Logged in', 'success')
+  #     session['user_id'] = user.id # add user's id'to session
+  #     return redirect('/playlists')
 
-    else:
-      form.username.errors = ['Invalid username/password']
+  #   else:
+  #     form.username.errors = ['Invalid username/password']
 
-  return render_template('users/login.html',form=form) # Reload login form
+  # return render_template('users/login.html',form=form) # Reload login form
+
+  return redirect(AUTHORIZATION_URL)
+
+
+@app.route('/callback')
+def callback():
+  code = request.args['code']
+  auth_header = request_access_and_refresh_tokens(code)
+
+  session['auth_header'] = auth_header
+  return redirect('/user')
 
 
 @app.route('/logout')
