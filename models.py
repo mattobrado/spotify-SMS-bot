@@ -14,7 +14,10 @@ def connect_db(app):
   db.init_app(app) # Initialize database
 
 class User(db.Model):
-  """User"""
+  """User
+  
+  usernames must be unique.
+  """
 
   __tablename__ = "users"
 

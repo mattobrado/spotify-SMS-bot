@@ -1,16 +1,18 @@
+"""Spotify GroupChat app"""
+
 from flask import Flask, redirect, render_template, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 from spotifyGroupChatSecrets import SECRET_KEY
-from models import Playlist, connect_db, db, User
-from forms import UserForm, PlaylistForm
 from sqlalchemy.exc import IntegrityError
 
+from models import Playlist, connect_db, db, User
+from forms import UserForm, PlaylistForm
+
 app = Flask(__name__) # Create Flask object
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///spotify_group_chat' # PSQL database
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # Don't track modifications
 app.config['SECRET_KEY'] = SECRET_KEY # SECRET_KEY for debug toolbar
-
-
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False # Disable intercepting redirects
 
 toolbar = DebugToolbarExtension(app) # Create debug toolbar object
@@ -23,25 +25,30 @@ def root():
   """Show homepage"""
   return render_template('homepage.html')
 
+
 @app.route('/signup', methods=['Get', 'POST'])
 def signup_user():
-  """Regiter new user"""
-  form = UserForm()
+  """Regiter new user, displays form and handles submission"""
+
+  form = UserForm() # Form for getting username and password
+
   if form.validate_on_submit():
     username = form.username.data
     password = form.password.data
-    new_user = User.register(username=username, password=password)
 
-    db.session.add(new_user)
+    new_user = User.register(username=username, password=password) # Create User object
 
+    db.session.add(new_user) # Add User
+
+    # Catch when a username already exists in the database
     try:
       db.session.commit()
     except IntegrityError:
       form.username.errors.append('Username taken.')
-      return render_template('users/signup.html', form=form)
+      return render_template('users/signup.html', form=form) # Reload form
     
-    session['user_id'] = new_user.id
-    flash('Welcome! Successfully create you account!', 'success')
+    session['username'] = new_user.username #store username in session for authorization
+    flash('Welcome! Successfully create you account!', 'success') #
     return redirect('/')
 
   return render_template('users/signup.html', form=form)
