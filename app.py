@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from models import Playlist, connect_db, db, User
 from forms import UserForm, PlaylistForm
-from spotify import AUTHORIZATION_URL, request_access_and_refresh_tokens
+from spotify import AUTHORIZATION_URL, get_access_and_refresh_tokens, get_users_profile
 
 app = Flask(__name__) # Create Flask object
 
@@ -26,6 +26,57 @@ db.create_all() # Create all tables
 def root():
   """Show homepage"""
   return render_template('homepage.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login_user():
+  """1st call in the Spotify Authetication process
+  
+  REQUEST AUTHORIZATION TO ACCESS DATA
+  """
+
+  # form = UserForm() # Form for getting username and password
+  
+  # if form.validate_on_submit():
+  #   username = form.username.data.lower() # make username all lowercase
+  #   password = form.password.data
+  #   user = User.authenticate(username=username, password=password) # Get User object
+    
+  #   # If User.autheticate() returned a User object
+  #   if user:
+  #     flash('Logged in', 'success')
+  #     session['user_id'] = user.id # add user's id'to session
+  #     return redirect('/playlists')
+
+  #   else:
+  #     form.username.errors = ['Invalid username/password']
+
+  # return render_template('users/login.html',form=form) # Reload login form
+
+  return redirect(AUTHORIZATION_URL)
+
+
+@app.route('/callback')
+def callback():
+  """REQUEST ACCESS AND REFRESH TOKENS"""
+
+  auth_token = request.args['code']
+  auth_header = get_access_and_refresh_tokens(auth_token)
+  session['auth_header'] = auth_header
+
+  return redirect('/profile')
+
+
+@app.route('/profile')
+def show_profile():
+  """Show a user's profile"""
+
+  if 'auth_header' in session:
+    auth_header = session['auth_header']
+    profile_data = get_users_profile(auth_header)
+
+  # raise
+  return 'User page'
 
 
 @app.route('/signup', methods=['Get', 'POST'])
@@ -55,40 +106,6 @@ def signup_user():
 
   else:
     return render_template('users/signup.html', form=form)
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login_user():
-  """Get login form and handle input"""
-
-  # form = UserForm() # Form for getting username and password
-  
-  # if form.validate_on_submit():
-  #   username = form.username.data.lower() # make username all lowercase
-  #   password = form.password.data
-  #   user = User.authenticate(username=username, password=password) # Get User object
-    
-  #   # If User.autheticate() returned a User object
-  #   if user:
-  #     flash('Logged in', 'success')
-  #     session['user_id'] = user.id # add user's id'to session
-  #     return redirect('/playlists')
-
-  #   else:
-  #     form.username.errors = ['Invalid username/password']
-
-  # return render_template('users/login.html',form=form) # Reload login form
-
-  return redirect(AUTHORIZATION_URL)
-
-
-@app.route('/callback')
-def callback():
-  code = request.args['code']
-  auth_header = request_access_and_refresh_tokens(code)
-
-  session['auth_header'] = auth_header
-  return redirect('/user')
 
 
 @app.route('/logout')
@@ -138,8 +155,3 @@ def delete_playlist(id):
 
   return redirect('/playlists')
 
-@app.route('/user')
-def user_page():
-  """Show a user's profile"""
-
-  return 'User page'

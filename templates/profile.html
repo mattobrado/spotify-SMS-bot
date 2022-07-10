@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<h1>Profile</h1>
+
+<ul>
+  {% for playlist in playlists %}
+  <li>{{ playlist.title }} by {{ playlist.user.username }}
+    {% if session['user_id'] == playlist.user_id %}
+    <form action="/playlists/{{ playlist.id }}/delete" style="display:inline;" method="POST">
+      <button class="btn btn-sm btn-danger">Delete playlist</button>
+    </form>
+    {% endif %}
+  </li>
+  
+  {% endfor %}
+</ul>
+{% endblock %}

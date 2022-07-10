@@ -14,9 +14,7 @@ def connect_db(app):
   db.init_app(app) # Initialize database
 
 class User(db.Model):
-  """User
-  
-  usernames must be unique.
+  """Model to hold spotify user data
   """
 
   __tablename__ = "users"

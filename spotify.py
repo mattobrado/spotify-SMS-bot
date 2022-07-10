@@ -9,11 +9,14 @@ SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
 SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'
 SPOTIFY_TOKEN_URL = SPOTIFY_AUTH_BASE_URL + '/api/token'
 
+SPOTIFY_API_URL = 'https://api.spotify.com/v1'
+USER_PROFILE_ENDPOINT = SPOTIFY_API_URL + '/me'
+
 SPOTIFY_CLIENT_ID = '8ef7a04961aa4c45b0ff10b1357ae880'
 REDIRECT_URI = 'http://localhost:5000/callback' 
 SCOPE = 'user-read-private user-read-email' # Scope of authorization
 
-# -------------------------- REQUEST AUTHORIZATION TO ACCESS DATA ----------------------------
+# ------------------------- REQUEST AUTHORIZATION TO ACCESS DATA ---------------------------
 auth_query_parameters = {
   "response_type": "code",
   "client_id": SPOTIFY_CLIENT_ID,
@@ -25,8 +28,8 @@ AUTHORIZATION_URL = f"{SPOTIFY_AUTH_URL}?{urlencode(auth_query_parameters)}"
 
 
 # -------------------------- REQUEST ACCESS AND REFRESH TOKENS ----------------------------
-def request_access_and_refresh_tokens(code):
-  """The 2nd call in the Spotify Authetication process
+def get_access_and_refresh_tokens(code):
+  """2nd call in the Spotify Authetication process
 
   Pass the authorization code returned by the first call and the client 
   secret key to the Spotify Accounts Service '/api/token' endpoint. 
@@ -49,7 +52,12 @@ def request_access_and_refresh_tokens(code):
   # Tokens returned 
   response_data = json.loads(post_request.text)
   access_token = response_data["access_token"]
-
+  # raise
   # Store access token to access Spotify API
   auth_header = {"Authorization": f"Bearer {access_token}"}
   return auth_header
+
+def get_users_profile(auth_header):
+    url = USER_PROFILE_ENDPOINT
+    resp = requests.get(url, headers=auth_header)
+    return resp.json()
