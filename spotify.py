@@ -21,7 +21,8 @@ auth_query_parameters = {
   "response_type": "code",
   "client_id": SPOTIFY_CLIENT_ID,
   "scope": SCOPE,
-  "redirect_uri": REDIRECT_URI
+  "redirect_uri": REDIRECT_URI,
+  "show_dialog": True # This enables users to switch accounts
 }
 
 AUTHORIZATION_URL = f"{SPOTIFY_AUTH_URL}?{urlencode(auth_query_parameters)}"

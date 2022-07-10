@@ -6,7 +6,7 @@ from mysecrets import SECRET_KEY
 from sqlalchemy.exc import IntegrityError
 
 from models import Playlist, connect_db, db, User
-from forms import UserForm, PlaylistForm
+from forms import PlaylistForm
 from spotify import AUTHORIZATION_URL, get_access_and_refresh_tokens, get_profile_data
 
 app = Flask(__name__) # Create Flask object
@@ -35,24 +35,6 @@ def login_user():
   REQUEST AUTHORIZATION TO ACCESS DATA
   """
 
-  # form = UserForm() # Form for getting username and password
-  
-  # if form.validate_on_submit():
-  #   username = form.username.data.lower() # make username all lowercase
-  #   password = form.password.data
-  #   user = User.authenticate(username=username, password=password) # Get User object
-    
-  #   # If User.autheticate() returned a User object
-  #   if user:
-  #     flash('Logged in', 'success')
-  #     session['user_id'] = user.id # add user's id'to session
-  #     return redirect('/playlists')
-
-  #   else:
-  #     form.username.errors = ['Invalid username/password']
-
-  # return render_template('users/login.html',form=form) # Reload login form
-
   return redirect(AUTHORIZATION_URL)
 
 
@@ -73,9 +55,12 @@ def callback():
   user = User.query.filter_by(email=email).first()
 
   if not user:
-    new_user = User(display_name=display_name, email=email, profile_url=profile_url) # Create User object
-    db.session.add(new_user) # Add User
+    user = User(display_name=display_name, email=email, profile_url=profile_url) # Create User object
+    db.session.add(user) # Add User
     db.session.commit()
+    flash('New Account Created!', 'success')
+  else:
+    flash(f"Welcome back {user.display_name}!", 'success')
   
   session['user_id'] = user.id
 
@@ -88,35 +73,6 @@ def show_profile():
 
   user = User.query.get_or_404(session['user_id'])
   return render_template('profile.html', user=user)
-
-
-@app.route('/signup', methods=['Get', 'POST'])
-def signup_user():
-  """Regiter new user, displays form and handles submission"""
-
-  form = UserForm() # Form for getting username and password
-
-  if form.validate_on_submit():
-    username = form.username.data.lower() # make username all lowercase
-    password = form.password.data
-
-    new_user = User.register(username=username, password=password) # Create User object
-
-    db.session.add(new_user) # Add User
-
-    # Catch when a username already exists in the database
-    try:
-      db.session.commit()
-    except IntegrityError:
-      form.username.errors.append('Username taken.') # Show an error on the form
-      return render_template('users/signup.html', form=form) # Reload form
-    
-    session['user_id'] = new_user.id #store user's id in session for authorization
-    flash('Welcome! Successfully create you account!', 'success')
-    return redirect('/')
-
-  else:
-    return render_template('users/signup.html', form=form)
 
 
 @app.route('/logout')
