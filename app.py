@@ -3,11 +3,10 @@
 from flask import Flask, redirect, render_template, flash, session, request
 from flask_debugtoolbar import DebugToolbarExtension
 from mysecrets import SECRET_KEY
-from sqlalchemy.exc import IntegrityError
 
 from models import Playlist, connect_db, db, User
 from forms import PlaylistForm
-from spotify import AUTHORIZATION_URL, get_access_and_refresh_tokens, get_profile_data
+from spotify import AUTHORIZATION_URL, get_access_token_header, get_profile_data
 
 app = Flask(__name__) # Create Flask object
 
@@ -24,45 +23,48 @@ db.create_all() # Create all tables
 
 @app.route('/')
 def root():
-  """Show homepage"""
-  return render_template('homepage.html')
+  """Redirect to /authorize"""
+  return redirect('/authorize')
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login_user():
-  """1st call in the Spotify Authetication process
+@app.route('/authorize', methods=['GET', 'POST'])
+def get_authorization():
+  """1st call in the Spotify Authetication process.
   
-  REQUEST AUTHORIZATION TO ACCESS DATA
-  """
+  Request authorization to access data"""
 
-  return redirect(AUTHORIZATION_URL)
+  return redirect(AUTHORIZATION_URL) # AUTHORIZATION_URL is assembled in spotify.py
 
 
-@app.route('/callback')
-def callback():
-  """REQUEST ACCESS AND REFRESH TOKENS"""
+@app.route('/login')
+def login():
+  """2nd call in the Spotify Authetication process.
+  
+  Request access token"""
 
-  auth_token = request.args['code']
-  auth_header = get_access_and_refresh_tokens(auth_token)
-  session['auth_header'] = auth_header
+  code = request.args['code'] # Get code returned from authorization
+  access_header = get_access_token_header(code) # Get a header to add to future requests
+  session['access_header'] = access_header # Store access header in session
 
-  profile_data = get_profile_data(auth_header) 
+  profile_data = get_profile_data(access_header) # Make an API request to get profile data
 
   display_name = profile_data['display_name']
   email = profile_data['email']
   profile_url = profile_data['external_urls']['spotify']
 
-  user = User.query.filter_by(email=email).first()
+  user = User.query.filter_by(email=email).first() # Look up user
 
+  # If the user is not in the database
   if not user:
     user = User(display_name=display_name, email=email, profile_url=profile_url) # Create User object
     db.session.add(user) # Add User
     db.session.commit()
     flash('New Account Created!', 'success')
+
   else:
     flash(f"Welcome back {user.display_name}!", 'success')
   
-  session['user_id'] = user.id
+  session['user_id'] = user.id # Save user_id in session
 
   return redirect('/profile')
 
@@ -71,16 +73,16 @@ def callback():
 def show_profile():
   """Show a user's profile"""
 
-  user = User.query.get_or_404(session['user_id'])
+  user = User.query.get_or_404(session['user_id']) # Get user using user_id in session
   return render_template('profile.html', user=user)
 
 
-@app.route('/logout')
-def logout_user():
-  """Logout route"""
+@app.route('/switch-user')
+def switch_user():
+  """Remove user id and redirect to authorization route"""
 
   session.pop('user_id') # Remover user_id from session
-  return redirect('/login')
+  return redirect('/authorize')
 
 
 @app.route('/playlists', methods=['GET', 'POST'])

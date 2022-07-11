@@ -15,16 +15,11 @@
   <div class="container">
     <div class="navbar-header">
       <a href="/" class="navbar-brand">
-        <span>Spotify SMS Buddy</span>
+        <span>Spotify SMS Playlists</span>
       </a>
     </div>
     <ul class="nav navbar-nav narbar-right">
-      {% if session['user_id'] %}
-        <li><a href="/logout">Log out</a></li>
-      {% else %}
-        <li><a href="/signup">Sign up</a></li>
-        <li><a href="/login">Log in</a></li>
-      {% endif %}
+      <li><a href="/switch-user">Switch User</a></li>
     </ul>
   </div>
 </nav>

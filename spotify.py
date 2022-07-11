@@ -13,7 +13,7 @@ SPOTIFY_API_URL = 'https://api.spotify.com/v1'
 USER_PROFILE_ENDPOINT = SPOTIFY_API_URL + '/me'
 
 SPOTIFY_CLIENT_ID = '8ef7a04961aa4c45b0ff10b1357ae880'
-REDIRECT_URI = 'http://localhost:5000/callback' 
+REDIRECT_URI = 'http://localhost:5000/login' 
 SCOPE = 'user-read-private user-read-email' # Scope of authorization
 
 # ------------------------- REQUEST AUTHORIZATION TO ACCESS DATA ---------------------------
@@ -29,7 +29,7 @@ AUTHORIZATION_URL = f"{SPOTIFY_AUTH_URL}?{urlencode(auth_query_parameters)}"
 
 
 # -------------------------- REQUEST ACCESS AND REFRESH TOKENS ----------------------------
-def get_access_and_refresh_tokens(code):
+def get_access_token_header(code):
   """2nd call in the Spotify Authetication process
 
   Pass the authorization code returned by the first call and the client 
