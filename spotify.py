@@ -55,13 +55,31 @@ def get_access_token_header(code):
   access_token = response_data["access_token"]
   # raise
   # Store access token to access Spotify API
-  auth_header = {"Authorization": f"Bearer {access_token}"}
-  return auth_header
+  access_header = {"Authorization": f"Bearer {access_token}"}
+  return access_header
 
 
-# -------------------------- DATA REQUESTS ---------------------------
-def get_profile_data(auth_header):
+# -------------------------- OTHER REQUESTS ---------------------------
+def get_profile_data(access_header):
   """Make a request to the spotify API and return profile data"""
 
-  resp = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header)
+  resp = requests.get(USER_PROFILE_ENDPOINT, headers=access_header)
   return resp.json() # Use .json() to convert to a python Dict
+
+
+def create_playlist(access_header, user_id, new_playlist_title):
+  """Create a playlist on the users account"""
+  
+  data = {
+    "name": new_playlist_title,
+    "description": "Spotify SMS Playlist",
+    "public": True
+  }
+
+  create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user_id}/playlists"
+   
+  print(create_playlist_endpoint)
+  requests.post(create_playlist_endpoint, headers=access_header, data=data)
+
+  return True
+

@@ -6,7 +6,7 @@ from mysecrets import SECRET_KEY
 
 from models import Playlist, connect_db, db, User
 from forms import PlaylistForm
-from spotify import AUTHORIZATION_URL, get_access_token_header, get_profile_data
+from spotify import AUTHORIZATION_URL, create_playlist, get_access_token_header, get_profile_data
 
 app = Flask(__name__) # Create Flask object
 
@@ -52,12 +52,13 @@ def login():
   display_name = profile_data['display_name']
   email = profile_data['email']
   profile_url = profile_data['external_urls']['spotify']
+  id = profile_data['id']
 
   user = User.query.filter_by(email=email).first() # Look up user
 
   # If the user is not in the database
   if not user:
-    user = User(display_name=display_name, email=email, profile_url=profile_url) # Create User object
+    user = User(display_name=display_name, email=email, profile_url=profile_url, id=id) # Create User object
     db.session.add(user) # Add User
     db.session.commit()
     flash('New Account Created!', 'success')
@@ -91,8 +92,10 @@ def show_profile():
   form = PlaylistForm() # Form for making a new playlist
 
   if form.validate_on_submit():
-    title = form.title.data
-    new_playlist = Playlist(title=title, user_id=session['user_id'])
+    new_playlist_title = form.title.data
+    user_id = session['user_id']
+    create_playlist(access_header=session['access_header'], user_id=user_id, new_playlist_title=new_playlist_title)
+    new_playlist = Playlist(title=new_playlist_title, user_id=user_id)
     db.session.add(new_playlist)
     db.session.commit()
     flash('Playlist Created', 'success')

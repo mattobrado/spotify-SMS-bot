@@ -11,7 +11,7 @@ db.create_all()
 bobeode = User(display_name="bobeode",email="bobeode@gmail.com",profile_url="fakeurl.com")
 wolfgang = User(display_name="wolfgang",email="wolfgang@gmail.com",profile_url="fakeurl.com")
 yikem = User(display_name="yikem",email="yikem@gmail.com",profile_url="fakeurl.com")
-djobrad = User(display_name="djobrad",email="mcobradovic@yahoo.com",profile_url="https://open.spotify.com/user/1245079776")
+djobrad = User(display_name="djobrad",email="mcobradovic@yahoo.com",profile_url="https://open.spotify.com/user/1245079776", id=1245079776)
 
 db.session.add(bobeode)
 db.session.add(wolfgang)
@@ -20,9 +20,9 @@ db.session.add(djobrad)
 db.session.commit()
 
 # Add playlists
-road_trip = Playlist(title="Road Trip", user_id=4)
-cooking = Playlist(title="Cooking", user_id=4)
-party = Playlist(title="party", user_id=4)
+road_trip = Playlist(title="Road Trip", user_id=1245079776)
+cooking = Playlist(title="Cooking", user_id=1245079776)
+party = Playlist(title="party", user_id=1245079776)
 
 db.session.add(road_trip)
 db.session.add(cooking)
