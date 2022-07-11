@@ -23,6 +23,7 @@ class User(db.Model):
   display_name = db.Column(db.Text, nullable=False)
   email = db.Column(db.Text, nullable=False, unique=True)
   url = db.Column(db.Text, nullable=False)
+  # phone_number
 
   # One user can have many playlists
   # Playlists are deleted once they are no longer associated with a user.
