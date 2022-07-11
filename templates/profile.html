@@ -25,7 +25,7 @@
   <tbody>
     {% for playlist in user.playlists %}
     <tr scope="row">
-      <td>{{ playlist.title }}</td>
+      <td><a href="{{ playlist.url }}">{{ playlist.title }}</a></td>
       <td>number-goes-here</td>
       <td>
         <form action="/profile/{{ playlist.id }}/delete" style="display:inline;" method="POST">

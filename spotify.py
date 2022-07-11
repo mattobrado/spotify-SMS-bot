@@ -14,7 +14,7 @@ USER_PROFILE_ENDPOINT = SPOTIFY_API_URL + '/me'
 
 SPOTIFY_CLIENT_ID = '8ef7a04961aa4c45b0ff10b1357ae880'
 REDIRECT_URI = 'http://localhost:5000/login' 
-SCOPE = 'user-read-private user-read-email' # Scope of authorization
+SCOPE = 'user-read-email playlist-modify-public playlist-modify-private' # Scope of authorization
 
 # ------------------------- REQUEST AUTHORIZATION TO ACCESS DATA ---------------------------
 auth_query_parameters = {
@@ -48,10 +48,10 @@ def get_access_token_header(code):
   }
 
   # Pass the authorization code and the client s ecret key to the Spotify Accounts Service
-  post_request = requests.post(SPOTIFY_TOKEN_URL, headers=headers, data=data)
+  access_request = requests.post(SPOTIFY_TOKEN_URL, headers=headers, data=data)
 
   # Tokens returned 
-  response_data = json.loads(post_request.text)
+  response_data = json.loads(access_request.text)
   access_token = response_data["access_token"]
   # raise
   # Store access token to access Spotify API
@@ -67,19 +67,19 @@ def get_profile_data(access_header):
   return resp.json() # Use .json() to convert to a python Dict
 
 
-def create_playlist(access_header, user_id, new_playlist_title):
+def create_playlist(access_header, user_id, title):
   """Create a playlist on the users account"""
   
-  data = {
-    "name": new_playlist_title,
-    "description": "Spotify SMS Playlist",
-    "public": True
-  }
+  data = json.dumps({
+  "name": title,
+  "description": "Spotify SMS Playlist",
+  "public": True
+  })
 
   create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user_id}/playlists"
-   
-  print(create_playlist_endpoint)
-  requests.post(create_playlist_endpoint, headers=access_header, data=data)
 
-  return True
+  playlist_request = requests.post(create_playlist_endpoint, headers=access_header, data=data)
+
+  playlist_url = json.loads(playlist_request.text)['external_urls']['spotify']
+  return playlist_url
 

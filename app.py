@@ -51,14 +51,14 @@ def login():
 
   display_name = profile_data['display_name']
   email = profile_data['email']
-  profile_url = profile_data['external_urls']['spotify']
+  url = profile_data['external_urls']['spotify']
   id = profile_data['id']
 
   user = User.query.filter_by(email=email).first() # Look up user
 
   # If the user is not in the database
   if not user:
-    user = User(display_name=display_name, email=email, profile_url=profile_url, id=id) # Create User object
+    user = User(display_name=display_name, email=email, url=url, id=id) # Create User object
     db.session.add(user) # Add User
     db.session.commit()
     flash('New Account Created!', 'success')
@@ -92,10 +92,10 @@ def show_profile():
   form = PlaylistForm() # Form for making a new playlist
 
   if form.validate_on_submit():
-    new_playlist_title = form.title.data
+    title = form.title.data
     user_id = session['user_id']
-    create_playlist(access_header=session['access_header'], user_id=user_id, new_playlist_title=new_playlist_title)
-    new_playlist = Playlist(title=new_playlist_title, user_id=user_id)
+    url = create_playlist(access_header=session['access_header'], user_id=user_id, title=title)
+    new_playlist = Playlist(title=title, user_id=user_id, url=url)
     db.session.add(new_playlist)
     db.session.commit()
     flash('Playlist Created', 'success')

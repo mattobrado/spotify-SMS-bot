@@ -8,10 +8,10 @@ db.drop_all()
 db.create_all()
 
 # Add users
-bobeode = User(display_name="bobeode",email="bobeode@gmail.com",profile_url="fakeurl.com")
-wolfgang = User(display_name="wolfgang",email="wolfgang@gmail.com",profile_url="fakeurl.com")
-yikem = User(display_name="yikem",email="yikem@gmail.com",profile_url="fakeurl.com")
-djobrad = User(display_name="djobrad",email="mcobradovic@yahoo.com",profile_url="https://open.spotify.com/user/1245079776", id=1245079776)
+bobeode = User(display_name="bobeode",email="bobeode@gmail.com",url="fakeurl.com")
+wolfgang = User(display_name="wolfgang",email="wolfgang@gmail.com",url="fakeurl.com")
+yikem = User(display_name="yikem",email="yikem@gmail.com",url="fakeurl.com")
+djobrad = User(display_name="djobrad",email="mcobradovic@yahoo.com",url="https://open.spotify.com/user/1245079776", id=1245079776)
 
 db.session.add(bobeode)
 db.session.add(wolfgang)

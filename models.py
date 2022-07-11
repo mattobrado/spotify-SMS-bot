@@ -22,7 +22,7 @@ class User(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   display_name = db.Column(db.Text, nullable=False)
   email = db.Column(db.Text, nullable=False, unique=True)
-  profile_url = db.Column(db.Text, nullable=False)
+  url = db.Column(db.Text, nullable=False)
 
   # One user can have many playlists
   # Playlists are deleted once they are no longer associated with a user.
@@ -37,6 +37,7 @@ class Playlist(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   title = db.Column(db.Text, nullable=False)
   user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+  url = db.Column(db.Text, nullable=False)
 
   # Two-way relationship between playlists and songs
   songs = db.relationship(
