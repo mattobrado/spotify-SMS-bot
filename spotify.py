@@ -3,7 +3,7 @@ import json
 import requests
 from urllib.parse import urlencode
 
-from mysecrets import SPOTIFY_CLIENT_SECRET
+from my_secrets import SPOTIFY_CLIENT_SECRET
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
 SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'

@@ -2,7 +2,7 @@
 
 from flask import Flask, redirect, render_template, flash, session, request
 from flask_debugtoolbar import DebugToolbarExtension
-from mysecrets import SECRET_KEY
+from my_secrets import SECRET_KEY
 
 from models import Playlist, connect_db, db, User
 from forms import PlaylistForm
@@ -73,7 +73,7 @@ def login():
 
 @app.route('/switch-user')
 def switch_user():
-  """Remove user id and redirect to authorization route"""
+  """Remove user id and redirect to the authorization route"""
 
   session.pop('user_id') # Remover user_id from session
   return redirect('/authorize')
