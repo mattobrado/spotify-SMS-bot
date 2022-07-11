@@ -4,17 +4,38 @@
 
 {% block content %}
 <h1>{{ user.display_name }}'s SMS playlists</h1>
+<form method="POST">
+  {{ form.hidden_tag() }}
 
-<ul>
-  {% for playlist in user.playlists %}
-  <li>{{ playlist.title }} by {{ playlist.user.username }}
-    {% if session['user_id'] == playlist.user_id %}
-    <form action="/playlists/{{ playlist.id }}/delete" style="display:inline;" method="POST">
-      <button class="btn btn-sm btn-danger">Delete playlist</button>
-    </form>
-    {% endif %}
-  </li>
-  
+  {% for field in form if field.widget.input_type != 'hidden' %}
+    {% for error in field.errors %}
+      <span class="text-danger">{{ error }}</span>
+    {% endfor %}
+    {{ field(placeholder=field.label.text, class="form-control") }}
   {% endfor %}
-</ul>
+
+  <button class="btn btn-primary" type="submit">Add Playlist</button>
+</form>
+<table class="table">
+  <thead>
+    <th scope="col">Playlist</th>
+    <th scope="col">SMS Number</th>
+    <th scope="col"></th>
+  </thead>
+  <tbody>
+    {% for playlist in user.playlists %}
+    <tr scope="row">
+      <td>{{ playlist.title }}</td>
+      <td>number-goes-here</td>
+      <td>
+        <form action="/profile/{{ playlist.id }}/delete" style="display:inline;" method="POST">
+          <button class="btn btn-sm btn-danger">Delete SMS bot</button>
+        </form>
+      </td>
+    </tr>
+
+    {% endfor %}
+  </tbody>
+</table>
+
 {% endblock %}

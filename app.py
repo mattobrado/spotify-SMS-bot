@@ -26,10 +26,11 @@ def root():
   """Redirect to /authorize"""
   return redirect('/authorize')
 
+# -------------------------- AUTHORIZATION/LOGIN ---------------------------
 
 @app.route('/authorize', methods=['GET', 'POST'])
 def get_authorization():
-  """1st call in the Spotify Authetication process.
+  """1st call in the Spotify authorization process.
   
   Request authorization to access data"""
 
@@ -38,7 +39,7 @@ def get_authorization():
 
 @app.route('/login')
 def login():
-  """2nd call in the Spotify Authetication process.
+  """2nd call in the Spotify authorization process.
   
   Request access token"""
 
@@ -69,14 +70,6 @@ def login():
   return redirect('/profile')
 
 
-@app.route('/profile')
-def show_profile():
-  """Show a user's profile"""
-
-  user = User.query.get_or_404(session['user_id']) # Get user using user_id in session
-  return render_template('profile.html', user=user)
-
-
 @app.route('/switch-user')
 def switch_user():
   """Remove user id and redirect to authorization route"""
@@ -85,16 +78,17 @@ def switch_user():
   return redirect('/authorize')
 
 
-@app.route('/playlists', methods=['GET', 'POST'])
-def show_playlists():
-  """Show list of playlists"""
+# -------------------------- PROFILE PAGE ---------------------------
 
+@app.route('/profile', methods=['GET', 'POST'])
+def show_profile():
+  """Show a user's profile and a list of their SMS playlists"""
   if 'user_id' not in session:
     flash('Please log in', 'warning')
-    return redirect('/')
+    return redirect('/authorize')
 
+  user = User.query.get_or_404(session['user_id']) # Get user using user_id in session
   form = PlaylistForm() # Form for making a new playlist
-  all_playlists = Playlist.query.all()
 
   if form.validate_on_submit():
     title = form.title.data
@@ -102,25 +96,25 @@ def show_playlists():
     db.session.add(new_playlist)
     db.session.commit()
     flash('Playlist Created', 'success')
-    return redirect('/playlists')
-  
-  return render_template('playlists.html', form=form, playlists=all_playlists)
+    return redirect('/profile')
+
+  return render_template('profile.html', user=user, form=form)
 
 
-@app.route('/playlists/<int:id>/delete', methods=['POST'])
-def delete_playlist(id):
+@app.route('/profile/<int:playlist_id>/delete', methods=['POST'])
+def delete_playlist(playlist_id):
   """Delete a playlists"""
 
-  playlist = Playlist.query.get_or_404(id)
+  playlist = Playlist.query.get_or_404(playlist_id)
   if playlist.user_id == session['user_id']:
     db.session.delete(playlist)
     db.session.commit()
-    flash('Playlist deleted')
-    return redirect('/playlists')
+    flash('Playlist Deleted', 'warning')
+    return redirect('/profile')
   
   # User was not authorized to delete that playlist
   else:
     flash('You cannot delete that playlist')
 
-  return redirect('/playlists')
+  return redirect('/profile')
 
