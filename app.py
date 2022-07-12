@@ -9,12 +9,12 @@ from twilio.twiml.messaging_response import MessagingResponse
 from my_secrets import SECRET_KEY
 from models import Playlist, connect_db, db, User
 from forms import PhoneForm, PlaylistForm
-from spotify import AUTHORIZATION_URL, get_track_ids_from_message, create_playlist, get_access_token_header, get_profile_data
+from spotify import AUTHORIZATION_URL, get_track_ids_from_message, create_playlist, get_auth_token_header, get_profile_data
 
 
 app = Flask(__name__) # Create Flask object
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///spotify_group_chat' # PSQL database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///spotify_sms_playlist' # PSQL database
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # Don't track modifications
 app.config['SECRET_KEY'] = SECRET_KEY # SECRET_KEY for debug toolbar
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False # Disable intercepting redirects
@@ -38,7 +38,7 @@ def root():
 def get_authorization():
   """1st call in the Spotify authorization process.
   
-  Request authorization to access data"""
+  Request authorization to auth data"""
 
   return redirect(AUTHORIZATION_URL) # AUTHORIZATION_URL is assembled in spotify.py
 
@@ -47,12 +47,12 @@ def get_authorization():
 def login():
   """2nd call in the Spotify authorization process.
   
-  Request access token"""
+  Request auth token"""
 
   code = request.args['code'] # Get code returned from authorization
-  session['access_header'] = get_access_token_header(code) # Store access header in session
+  auth_header = get_auth_token_header(code) # Get authorization header
 
-  profile_data = get_profile_data(session['access_header']) # Make an API request to get profile data
+  profile_data = get_profile_data(auth_header) # Make an API request to get profile data
 
   display_name = profile_data['display_name']
   email = profile_data['email']
@@ -63,12 +63,16 @@ def login():
 
   # If the user is not in the database
   if not user:
-    user = User(display_name=display_name, email=email, url=url, id=id) # Create User object
+    user = User(display_name=display_name, email=email, url=url, id=id, auth_header=auth_header) # Create User object
     db.session.add(user) # Add User
     db.session.commit()
     flash('New Account Created!', 'success')
 
   else:
+    # Update auth header
+    user.auth_header = auth_header
+    db.session.add(user) 
+    db.session.commit()
     flash(f"Welcome back {user.display_name}!", 'success')
   
   session['user_id'] = user.id # Save user_id in session
@@ -109,7 +113,7 @@ def show_profile():
   if form.validate_on_submit():
     title = form.title.data
     user_id = session['user_id']
-    url = create_playlist(access_header=session['access_header'], user_id=user_id, title=title)
+    url = create_playlist(auth_header=user.auth_header, user_id=user.id, title=title)
     new_playlist = Playlist(title=title, user_id=user_id, url=url)
     db.session.add(new_playlist)
     db.session.commit()
@@ -179,3 +183,7 @@ def receive_sms():
   dir(resp)
   
   return str(resp)
+
+
+# def get_playlist_from_number(number):
+

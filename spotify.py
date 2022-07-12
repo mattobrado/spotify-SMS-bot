@@ -30,7 +30,7 @@ AUTHORIZATION_URL = f"{SPOTIFY_AUTH_URL}?{urlencode(auth_query_parameters)}"
 
 
 # -------------------------- REQUEST ACCESS AND REFRESH TOKENS ----------------------------
-def get_access_token_header(code):
+def get_auth_token_header(code):
   """2nd call in the Spotify Authetication process
 
   Pass the authorization code returned by the first call and the client 
@@ -49,26 +49,28 @@ def get_access_token_header(code):
   }
 
   # Pass the authorization code and the client s ecret key to the Spotify Accounts Service
-  access_request = requests.post(SPOTIFY_TOKEN_URL, headers=headers, data=data)
+  auth_request = requests.post(SPOTIFY_TOKEN_URL, headers=headers, data=data)
 
   # Tokens returned 
-  response_data = json.loads(access_request.text)
+  response_data = json.loads(auth_request.text)
   access_token = response_data["access_token"]
-  # raise
+
   # Store access token to access Spotify API
-  access_header = {"Authorization": f"Bearer {access_token}"}
-  return access_header
+  auth_header = json.dumps({"Authorization": f"Bearer {access_token}"}) # json.dumps() so we can store the string in our database
+  return auth_header
 
 
 # -------------------------- OTHER REQUESTS ---------------------------
-def get_profile_data(access_header):
+def get_profile_data(auth_header):
   """Make a request to the spotify API and return profile data"""
 
-  resp = requests.get(USER_PROFILE_ENDPOINT, headers=access_header)
+  auth_header = json.loads(auth_header)
+
+  resp = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header)
   return resp.json() # Use .json() to convert to a python Dict
 
 
-def create_playlist(access_header, user_id, title):
+def create_playlist(auth_header, user_id, title):
   """Create a playlist on the users account"""
   
   data = json.dumps({
@@ -80,7 +82,7 @@ def create_playlist(access_header, user_id, title):
 
   create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user_id}/playlists"
 
-  playlist_request = requests.post(create_playlist_endpoint, headers=access_header, data=data)
+  playlist_request = requests.post(create_playlist_endpoint, headers=auth_header, data=data)
 
   playlist_url = json.loads(playlist_request.text)['external_urls']['spotify']
   return playlist_url
@@ -99,4 +101,3 @@ def get_track_ids_from_message(message):
     track_ids.append(track_id) # Append track_id to our list to return
 
   return track_ids
-

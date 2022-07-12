@@ -1,6 +1,6 @@
 """Seed file to make sample data for spotify_group_chat db"""
 
-from models import User, Playlist, Song, db
+from models import User, Playlist, db
 from app import app
 
 # Create all tables
@@ -29,12 +29,12 @@ db.session.add(cooking)
 db.session.add(party)
 db.session.commit()
 
-# Add songs
-happy_birthday = Song(title="Happy Birthday", artist="Party People")
-fantazia = Song(title="FANTAZIA", artist="Roy Blair")
-bad_habit = Song(title="Bad Habit", artist="Steve Lacy")
+# # Add songs
+# happy_birthday = Track(title="Happy Birthday", artist="Party People")
+# fantazia = Track(title="FANTAZIA", artist="Roy Blair")
+# bad_habit = Track(title="Bad Habit", artist="Steve Lacy")
 
-db.session.add(happy_birthday)
-db.session.add(fantazia)
-db.session.add(bad_habit)
-db.session.commit()
+# db.session.add(happy_birthday)
+# db.session.add(fantazia)
+# db.session.add(bad_habit)
+# db.session.commit()
