@@ -1,12 +1,15 @@
 """Spotify GroupChat app"""
 
+from urllib import response
 from flask import Flask, redirect, render_template, flash, session, request
 from flask_debugtoolbar import DebugToolbarExtension
-from my_secrets import SECRET_KEY
+from twilio.twiml.messaging_response import MessagingResponse
 
+from my_secrets import SECRET_KEY
 from models import Playlist, connect_db, db, User
 from forms import PlaylistForm
 from spotify import AUTHORIZATION_URL, create_playlist, get_access_token_header, get_profile_data
+
 
 app = Flask(__name__) # Create Flask object
 
@@ -121,3 +124,23 @@ def delete_playlist(playlist_id):
 
   return redirect('/profile')
 
+
+@app.route('/api/receive_sms', methods=['POST'])
+def receive_sms():
+  """Route for Twilio to pass in recieved messages"""
+  
+  number = request.form['From']
+  body = request.form['Body']
+  
+  print("***************************************")
+  print(number)
+  print(body)
+  
+  
+  resp = MessagingResponse ()
+  resp.message('Song added!')
+
+  print(resp)
+  print(str(resp))
+  dir(resp)
+  return str(resp)

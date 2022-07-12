@@ -10,9 +10,9 @@ client = Client(account_sid, auth_token)
 
 message = client.messages \
     .create(
-         body='This is you Spotify SMS playlist number, send links to this number to add them to your playlist',
+         body='Hello, I have a texting robot',
          from_='+12702900802',
-         to='+17084207758'
+         to='+17087700438'
      )
 
 print(message.sid)
