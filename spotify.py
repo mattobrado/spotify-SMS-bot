@@ -1,6 +1,7 @@
 import base64
 import json
 import requests
+import re
 from urllib.parse import urlencode
 
 from my_secrets import SPOTIFY_CLIENT_SECRET
@@ -83,4 +84,19 @@ def create_playlist(access_header, user_id, title):
 
   playlist_url = json.loads(playlist_request.text)['external_urls']['spotify']
   return playlist_url
+
+
+def get_track_ids_from_message(message):
+  """Returns a list of Spotify track URLs in a string"""
+
+  track_ids = [] # List of track_ids to return
+
+  urls = re.findall('https:\/\/open.spotify.com\/track\/+[^? ]*', message) # Regex for finding track urls
+  
+  # Iterate over found urls
+  for url in urls:
+    track_id = url.replace('https://open.spotify.com/track/', '') # replace the begining to get the track id
+    track_ids.append(track_id) # Append track_id to our list to return
+
+  return track_ids
 

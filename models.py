@@ -43,31 +43,31 @@ class Playlist(db.Model):
 
   user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-  # Two-way relationship between playlists and songs
-  songs = db.relationship(
-    "Song",
-    secondary="playlist_songs",
+  # Two-way relationship between playlists and tracks
+  tracks = db.relationship(
+    "Track",
+    secondary="playlist_tracks",
     backref="playlists"
   )
 
 
-class Song(db.Model):
-  """Song"""
+class Track(db.Model):
+  """Track"""
 
-  __tablename__ = "songs"
+  __tablename__ = "tracks"
   
   id = db.Column(db.Integer, primary_key=True)
   title = db.Column(db.Text, nullable=False)
   artist = db.Column(db.Text, nullable=False)
 
-class PlaylistSong(db.Model):
-  """Song in a playlist.
+class PlaylistTrack(db.Model):
+  """Track in a playlist.
   
-  Many-to-many relationship between songs and playlist.
-  PlaylistSongs are unique.
+  Many-to-many relationship between tracks and playlist.
+  PlaylistTracks are unique.
   """
 
-  __tablename__ = "playlist_songs"
+  __tablename__ = "playlist_tracks"
 
   playlist_id = db.Column(db.Integer, db.ForeignKey('playlists.id'), primary_key=True)
-  song_id = db.Column(db.Integer, db.ForeignKey('songs.id'), primary_key=True)
+  track_id = db.Column(db.Integer, db.ForeignKey('tracks.id'), primary_key=True)

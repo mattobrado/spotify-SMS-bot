@@ -4,7 +4,7 @@
 {% block title %}{{ user.display_name }}{% endblock %}
 
 {% block content %}
-<h1>{{ user.display_name }}'s SMS playlists</h1>
+<h1>Hello {{ user.display_name }}</h1>
 <h3>Enter your phone number to create a playlist.</h3>
 <p>Your phone number is how we know which playlist to add songs to.</p>
 {{ render_form(form) }}

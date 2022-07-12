@@ -3,13 +3,13 @@
 from urllib import response
 from flask import Flask, redirect, render_template, flash, session, request
 from flask_debugtoolbar import DebugToolbarExtension
-from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap5
 from twilio.twiml.messaging_response import MessagingResponse
 
 from my_secrets import SECRET_KEY
 from models import Playlist, connect_db, db, User
 from forms import PhoneForm, PlaylistForm
-from spotify import AUTHORIZATION_URL, create_playlist, get_access_token_header, get_profile_data
+from spotify import AUTHORIZATION_URL, get_track_ids_from_message, create_playlist, get_access_token_header, get_profile_data
 
 
 app = Flask(__name__) # Create Flask object
@@ -20,7 +20,8 @@ app.config['SECRET_KEY'] = SECRET_KEY # SECRET_KEY for debug toolbar
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False # Disable intercepting redirects
 
 toolbar = DebugToolbarExtension(app) # Create debug toolbar object
-bootsrap =Bootstrap(app)
+bootsrap =Bootstrap5(app) # Create bootstrap object
+
 
 connect_db(app) # Connect database to Flask object 
 db.create_all() # Create all tables
@@ -49,10 +50,9 @@ def login():
   Request access token"""
 
   code = request.args['code'] # Get code returned from authorization
-  access_header = get_access_token_header(code) # Get a header to add to future requests
-  session['access_header'] = access_header # Store access header in session
+  session['access_header'] = get_access_token_header(code) # Store access header in session
 
-  profile_data = get_profile_data(access_header) # Make an API request to get profile data
+  profile_data = get_profile_data(session['access_header']) # Make an API request to get profile data
 
   display_name = profile_data['display_name']
   email = profile_data['email']
@@ -78,44 +78,29 @@ def login():
 
 @app.route('/switch-user')
 def switch_user():
-  """Remove user id and redirect to the authorization route"""
+  """Remove user id and authorization header and redirect to the authorization route"""
 
-  session.pop('user_id') # Remover user_id from session
+  session.clear() # Remover user_id from session
   return redirect('/authorize')
 
 
 # -------------------------- PROFILE PAGE ---------------------------
-
-@app.route('/phone', methods = ['GET', 'POST'])
-def get_phone_number():
-  
-  user = User.query.get_or_404(session['user_id'])
-  form = PhoneForm() # Form for getting phone numbers
-
-  if form.validate_on_submit():
-    phone_number = form.phone.data
-    print(phone_number)
-    user.phone_number = phone_number
-
-    db.session.add(user)
-    db.session.commit()
-    flash('Phone Number Updated', 'success')
-    return redirect('/profile')
-  
-  return render_template('phone.html', user=user, form=form)
 
 
 @app.route('/profile', methods=['GET', 'POST'])
 def show_profile():
   """Show a user's profile and a list of their SMS playlists"""
   
+  # Prevent users from jumping ahead to /profile without first authorizing
   if 'user_id' not in session:
     flash('Please log in', 'warning')
     return redirect('/authorize')
   
   user = User.query.get_or_404(session['user_id']) # Get user using user_id in session
   
-  if not user.phone_number :
+  # The first time a user logs in, they will not have a phone number associated with their account
+  # We need the user's phone number so redirect to the phone number form
+  if not user.phone_number:
     flash('Enter your phone number to create a playlist', 'warning')
     return redirect('/phone')
   
@@ -134,6 +119,22 @@ def show_profile():
   return render_template('profile.html', user=user, form=form)
 
 
+@app.route('/phone', methods = ['GET', 'POST'])
+def get_phone_number():
+  
+  user = User.query.get_or_404(session['user_id']) # get User
+  form = PhoneForm() # Form for getting phone numbers
+
+  if form.validate_on_submit():
+    user.phone_number = form.phone.data # save user's phone number
+    db.session.add(user)
+    db.session.commit()
+    flash('Phone Number Updated', 'success')
+    return redirect('/profile')
+  
+  return render_template('phone.html', user=user, form=form)
+
+
 @app.route('/profile/<int:playlist_id>/delete', methods=['POST'])
 def delete_playlist(playlist_id):
   """Delete a playlists"""
@@ -145,7 +146,7 @@ def delete_playlist(playlist_id):
     flash('Playlist Deleted', 'warning')
     return redirect('/profile')
   
-  # User was not authorized to delete that playlist
+  # User is not authorized to delete the playlist
   else:
     flash('You cannot delete that playlist')
 
@@ -159,13 +160,19 @@ def receive_sms():
   number = request.form['From']
   body = request.form['Body']
   
-  print("***************************************")
+  print("************************************************")
   print(number)
   print(body)
+
+  urls = get_track_ids_from_message(body)
+
+  # for url in urls:
+  #   add_track_to_playlist(url)
   
-  
+  print(f"urls: {urls}")
+
   resp = MessagingResponse ()
-  resp.message('Song added!')
+  resp.message('track added!')
 
   print(resp)
   print(str(resp))
