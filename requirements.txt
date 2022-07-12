@@ -1,5 +1,6 @@
 bcrypt==3.2.2
 blinker==1.4
+Bootstrap-Flask==2.0.2
 certifi==2022.6.15
 cffi==1.15.1
 charset-normalizer==2.1.0

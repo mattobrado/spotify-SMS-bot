@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form %}
 
 {% block title %}{{ user.display_name }}{% endblock %}
 
@@ -6,17 +7,25 @@
 <h1>{{ user.display_name }}'s SMS playlists</h1>
 <h3>Enter your phone number to create a playlist.</h3>
 <p>Your phone number is how we know which playlist to add songs to.</p>
-<form method="POST">
-  {{ form.hidden_tag() }}
+{{ render_form(form) }}
+{% endblock %}
 
-  {% for field in form if field.widget.input_type != 'hidden' %}
-    {% for error in field.errors %}
-      <span class="text-danger">{{ error }}</span>
-    {% endfor %}
-    {{ field(placeholder=field.label.text, class="form-control") }}
-  {% endfor %}
-
-  <button class="btn btn-primary" type="submit">Start Creating Playlists</button>
-</form>
-
+{% block scripts %}
+{{ super() }}
+<script>
+    var wtf_phone_field = document.getElementById('phone');
+    wtf_phone_field.style.position = 'absolute';
+    wtf_phone_field.style.top = '-9999px';
+    wtf_phone_field.style.left = '-9999px';
+    wtf_phone_field.parentElement.insertAdjacentHTML('beforeend', '<div><input type="tel" id="_phone"></div>');
+    var fancy_phone_field = document.getElementById('_phone');
+    var fancy_phone_iti = window.intlTelInput(fancy_phone_field, {
+        separateDialCode: true,
+        utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/16.0.4/js/utils.js",
+    });
+    fancy_phone_iti.setNumber(wtf_phone_field.value);
+    fancy_phone_field.addEventListener('blur', function() {
+        wtf_phone_field.value = fancy_phone_iti.getNumber();
+    });
+</script>
 {% endblock %}

@@ -3,6 +3,7 @@
 from urllib import response
 from flask import Flask, redirect, render_template, flash, session, request
 from flask_debugtoolbar import DebugToolbarExtension
+from flask_bootstrap import Bootstrap
 from twilio.twiml.messaging_response import MessagingResponse
 
 from my_secrets import SECRET_KEY
@@ -19,6 +20,7 @@ app.config['SECRET_KEY'] = SECRET_KEY # SECRET_KEY for debug toolbar
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False # Disable intercepting redirects
 
 toolbar = DebugToolbarExtension(app) # Create debug toolbar object
+bootsrap =Bootstrap(app)
 
 connect_db(app) # Connect database to Flask object 
 db.create_all() # Create all tables
