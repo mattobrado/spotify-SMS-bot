@@ -7,7 +7,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 from my_secrets import SECRET_KEY
 from models import Playlist, connect_db, db, User
-from forms import PhoneNumberForm, PlaylistForm
+from forms import PhoneForm, PlaylistForm
 from spotify import AUTHORIZATION_URL, create_playlist, get_access_token_header, get_profile_data
 
 
@@ -88,10 +88,11 @@ def switch_user():
 def get_phone_number():
   
   user = User.query.get_or_404(session['user_id'])
-  form = PhoneNumberForm() # Form for getting phone numbers
+  form = PhoneForm() # Form for getting phone numbers
 
-  if form.validate_phone():
-    phone_number = form.phone_number.data
+  if form.validate_on_submit():
+    phone_number = form.phone.data
+    print(phone_number)
     user.phone_number = phone_number
 
     db.session.add(user)

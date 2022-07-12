@@ -1,23 +1,21 @@
 """WTForms"""
 from flask_wtf import FlaskForm
-from wtforms import StringField, ValidationError
-from wtforms.validators import InputRequired
+from wtforms import StringField, SubmitField
+from wtforms.validators import InputRequired, ValidationError, DataRequired
 import phonenumbers
 
-class PhoneNumberForm(FlaskForm):
-  phone_number = StringField("Your phone number", validators=[InputRequired()])
+# PhoneForm was provided by Twilio
+class PhoneForm(FlaskForm):
+  phone = StringField('Phone', validators=[DataRequired()])
+  submit = SubmitField('Submit')
 
-  def validate_phone(form, field):
-    if len(field.data) > 16:
-      raise ValidationError('Invalid phone number.')
+  def validate_phone(self, phone):
     try:
-      input_number = phonenumbers.parse(field.data)
-      if not (phonenumbers.is_valid_number(input_number)):
-        raise ValidationError('Invalid phone number.')
-    except:
-      input_number = phonenumbers.parse("+1"+field.data)
-      if not (phonenumbers.is_valid_number(input_number)):
-          raise ValidationError('Invalid phone number.')
+      p = phonenumbers.parse(phone.data)
+      if not phonenumbers.is_valid_number(p):
+        raise ValueError()
+    except (phonenumbers.phonenumberutil.NumberParseException, ValueError):
+      raise ValidationError('Invalid phone number')
 
 class PlaylistForm(FlaskForm):
   """Form for creating a playlist"""
