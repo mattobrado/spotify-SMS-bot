@@ -14,7 +14,9 @@ def connect_db(app):
 
 
 class User(db.Model):
-  """Model to hold spotify user data"""
+  """ A host user is associated with a spotify account
+  The playlist is stored on their account
+  Model to hold spotify user data"""
 
   __tablename__ = "users"
 
@@ -22,7 +24,7 @@ class User(db.Model):
   display_name = db.Column(db.Text, nullable=False)
   email = db.Column(db.Text, nullable=False, unique=True)
   url = db.Column(db.Text, nullable=False)
-  # phone_number
+  phone_number = db.Column(db.Text, unique=True)
 
   # One user can have many playlists
   # Playlists are deleted once they are no longer associated with a user.
@@ -36,8 +38,10 @@ class Playlist(db.Model):
 
   id = db.Column(db.Integer, primary_key=True)
   title = db.Column(db.Text, nullable=False)
-  user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+  # tag= db.Column(db.Text, nullable=False)
   url = db.Column(db.Text, nullable=False)
+
+  user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
   # Two-way relationship between playlists and songs
   songs = db.relationship(

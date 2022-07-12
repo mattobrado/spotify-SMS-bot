@@ -73,7 +73,8 @@ def create_playlist(access_header, user_id, title):
   data = json.dumps({
   "name": title,
   "description": "Spotify SMS Playlist",
-  "public": True
+  "public": True,
+  "collaborative": True
   })
 
   create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user_id}/playlists"

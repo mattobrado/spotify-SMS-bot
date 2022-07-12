@@ -20,9 +20,9 @@ db.session.add(djobrad)
 db.session.commit()
 
 # Add playlists
-road_trip = Playlist(title="Road Trip", user_id=1245079776)
-cooking = Playlist(title="Cooking", user_id=1245079776)
-party = Playlist(title="party", user_id=1245079776)
+road_trip = Playlist(title="Road Trip", user_id=1245079776,url="fakeurl.com")
+cooking = Playlist(title="Cooking", user_id=1245079776,url="fakeurl.com")
+party = Playlist(title="party", user_id=1245079776,url="fakeurl.com")
 
 db.session.add(road_trip)
 db.session.add(cooking)

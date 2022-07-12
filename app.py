@@ -7,7 +7,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 from my_secrets import SECRET_KEY
 from models import Playlist, connect_db, db, User
-from forms import PlaylistForm
+from forms import PhoneNumberForm, PlaylistForm
 from spotify import AUTHORIZATION_URL, create_playlist, get_access_token_header, get_profile_data
 
 
@@ -84,14 +84,38 @@ def switch_user():
 
 # -------------------------- PROFILE PAGE ---------------------------
 
+@app.route('/phone', methods = ['GET', 'POST'])
+def get_phone_number():
+  
+  user = User.query.get_or_404(session['user_id'])
+  form = PhoneNumberForm() # Form for getting phone numbers
+
+  if form.validate_phone():
+    phone_number = form.phone_number.data
+    user.phone_number = phone_number
+
+    db.session.add(user)
+    db.session.commit()
+    flash('Phone Number Updated', 'success')
+    return redirect('/profile')
+  
+  return render_template('phone.html', user=user, form=form)
+
+
 @app.route('/profile', methods=['GET', 'POST'])
 def show_profile():
   """Show a user's profile and a list of their SMS playlists"""
+  
   if 'user_id' not in session:
     flash('Please log in', 'warning')
     return redirect('/authorize')
-
+  
   user = User.query.get_or_404(session['user_id']) # Get user using user_id in session
+  
+  if not user.phone_number :
+    flash('Enter your phone number to create a playlist', 'warning')
+    return redirect('/phone')
+  
   form = PlaylistForm() # Form for making a new playlist
 
   if form.validate_on_submit():
@@ -143,4 +167,5 @@ def receive_sms():
   print(resp)
   print(str(resp))
   dir(resp)
+  
   return str(resp)
