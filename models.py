@@ -27,7 +27,7 @@ class User(db.Model):
   phone_number = db.Column(db.Text, unique=True)
   auth_header = db.Column(db.Text, unique=True)
   
-  playlist_id = db.Column(db.Integer, db.ForeignKey('playlists.id'))
+  playlists = db.relationship("Playlist", backref="owner", cascade="all, delete-orphan")
 
 
 class Playlist(db.Model):
@@ -35,37 +35,8 @@ class Playlist(db.Model):
 
   __tablename__ = "playlists"
 
-  id = db.Column(db.Integer, primary_key=True)
+  id = db.Column(db.Text, primary_key=True)
   title = db.Column(db.Text, nullable=False)
   url = db.Column(db.Text, nullable=False)
-
-  users = db.relationship("User", backref="playlist", cascade="all, delete-orphan")
-
-  # Two-way relationship between playlists and tracks
-  # tracks = db.relationship(
-  #   "Track",
-  #   secondary="playlist_tracks",
-  #   backref="playlists"
-  # )
-
-
-# class Track(db.Model):
-#   """Track"""
-
-#   __tablename__ = "tracks"
-  
-#   id = db.Column(db.Integer, primary_key=True)
-#   title = db.Column(db.Text, nullable=False)
-#   artist = db.Column(db.Text, nullable=False)
-
-# class PlaylistTrack(db.Model):
-#   """Track in a playlist.
-  
-#   Many-to-many relationship between tracks and playlist.
-#   PlaylistTracks are unique.
-#   """
-
-#   __tablename__ = "playlist_tracks"
-
-#   playlist_id = db.Column(db.Integer, db.ForeignKey('playlists.id'), primary_key=True)
-#   track_id = db.Column(db.Integer, db.ForeignKey('tracks.id'), primary_key=True)
+  endpoint = db.Column(db.Text, nullable=False)
+  owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)

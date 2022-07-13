@@ -1,5 +1,6 @@
 """Spotify GroupChat app"""
 
+from re import I
 from urllib import response
 from flask import Flask, redirect, render_template, flash, session, request
 from flask_debugtoolbar import DebugToolbarExtension
@@ -9,7 +10,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from my_secrets import SECRET_KEY
 from models import Playlist, connect_db, db, User
 from forms import PhoneForm, PlaylistForm
-from spotify import AUTHORIZATION_URL, get_track_ids_from_message, create_spotify_playlist, get_auth_token_header, get_profile_data
+from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_track_ids_from_message, create_playlist, get_auth_token_header, get_profile_data
 
 
 app = Flask(__name__) # Create Flask object
@@ -112,15 +113,12 @@ def show_profile():
   if form.validate_on_submit():
     title = form.title.data
 
-    url = create_spotify_playlist(auth_header=user.auth_header, user_id=user.id, title=title)
-    new_playlist = add_playlist_to_database(title, url)
-    attach_playlist_to_user(user=user, playlist=new_playlist)
+    create_playlist(auth_header=user.auth_header, user_id=user.id, title=title)
 
     flash('Playlist Created', 'success')
     return redirect('/profile')
 
-  playlist = Playlist.query.filter_by(id=user.playlist_id).first() # Look user's playlist
-  return render_template('profile.html', user=user, form=form, playlist=playlist)
+  return render_template('profile.html', user=user, form=form)
 
 
 @app.route('/phone', methods = ['GET', 'POST'])
@@ -165,27 +163,19 @@ def receive_sms():
   body = request.form['Body']
   
   ids = get_track_ids_from_message(body)
-  print(f"ids: {urls}")
+  print(f"ids: {ids}")
 
   user = User.query.filter_by(phone_number=number).first()
-  print(user.display_name)
+  print(f"found user: {user.display_name}")
+  playlist = Playlist.query.filter_by(owner_id=user.id).first()
+  print(f"found playlist: {playlist.title}")
+
+  add_tracks_to_playlist(playlist=playlist, track_ids=ids)  
 
   resp = MessagingResponse ()
   resp.message('track added!')
   
   return str(resp)
-
-
-def add_playlist_to_database(title, url):
-  """Add a playlist to the database and return its Playlist Object"""
-
-  new_playlist = Playlist(title=title, url=url) # Create playlist object
-  db.session.add(new_playlist) 
-  db.session.commit() # Add Playlist to database
-  return Playlist.query.filter_by(url=url).first()  # Get playlist, 
-                                                    # We need to commit the playlist to the 
-                                                    # database and get it again so that its id 
-                                                    # generates 
 
 
 def attach_playlist_to_user(user, playlist):

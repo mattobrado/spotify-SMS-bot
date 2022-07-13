@@ -24,7 +24,7 @@
     <th scope="col"></th>
   </thead>
   <tbody>
-    {% if playlist %}
+    {% for playlist in user.playlists %}
     <tr scope="row">
       <td><a href="{{ playlist.url }}">{{ playlist.title }}</a></td>
       <td>number-goes-here</td>
@@ -35,7 +35,7 @@
       </td>
     </tr>
 
-    {% endif %}
+    {% endfor %}
   </tbody>
 </table>
 

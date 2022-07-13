@@ -5,6 +5,7 @@ import re
 from urllib.parse import urlencode
 
 from my_secrets import SPOTIFY_CLIENT_SECRET
+from models import Playlist, db
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
 SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'
@@ -70,24 +71,33 @@ def get_profile_data(auth_header):
   return resp.json() # Use .json() to convert to a python Dict
 
 
-def create_spotify_playlist(auth_header, user_id, title):
+def create_playlist(auth_header, user_id, title):
   """Create a playlist on the users account"""
   
   auth_header = json.loads(auth_header) 
 
   data = json.dumps({
-  "name": title,
-  "description": "Spotify SMS Playlist",
-  "public": False,
-  "collaborative": True
+    "name": title,
+    "description": "Spotify SMS Playlist",
+    "public": False,
+    "collaborative": True
   })
 
   create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user_id}/playlists"
 
   playlist_request = requests.post(create_playlist_endpoint, headers=auth_header, data=data)
+  playlist_data = json.loads(playlist_request.text)
+  
+  id = playlist_data['id']
+  url = playlist_data['external_urls']['spotify']
+  endpoint = playlist_data['href']
+  owner_id = playlist_data['owner']['id']
 
-  playlist_url = json.loads(playlist_request.text)['external_urls']['spotify']
-  return playlist_url
+  new_playlist = Playlist(id=id, title=title, url=url, endpoint=endpoint, owner_id=owner_id)
+  db.session.add(new_playlist)
+  db.session.commit() # commit to database
+  
+  return new_playlist
 
 
 def get_track_ids_from_message(message):
@@ -105,4 +115,18 @@ def get_track_ids_from_message(message):
   return track_ids
 
 
-# def add_tracks_to_playlist(message):
+def add_tracks_to_playlist(playlist, track_ids):
+  auth_header = json.loads(playlist.owner.auth_header)
+
+  add_tracks_endpoint = playlist.endpoint + "/tracks"
+  
+  print(add_tracks_endpoint)
+  uris_string = ''
+  for track_id in track_ids:
+    uris_string = uris_string + 'spotify:track:' + track_id
+
+  params= {
+    "uris": uris_string
+  }
+
+  add_track_request = requests.post(add_tracks_endpoint, headers=auth_header, params=params)
