@@ -26,10 +26,8 @@ class User(db.Model):
   url = db.Column(db.Text, nullable=False)
   phone_number = db.Column(db.Text, unique=True)
   auth_header = db.Column(db.Text, unique=True)
-
-  # One user can have many playlists
-  # Playlists are deleted once they are no longer associated with a user.
-  playlists = db.relationship("Playlist", backref="user", cascade="all, delete-orphan")
+  
+  playlist_id = db.Column(db.Integer, db.ForeignKey('playlists.id'))
 
 
 class Playlist(db.Model):
@@ -39,10 +37,9 @@ class Playlist(db.Model):
 
   id = db.Column(db.Integer, primary_key=True)
   title = db.Column(db.Text, nullable=False)
-  # tag= db.Column(db.Text, nullable=False)
   url = db.Column(db.Text, nullable=False)
 
-  user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+  users = db.relationship("User", backref="playlist", cascade="all, delete-orphan")
 
   # Two-way relationship between playlists and tracks
   # tracks = db.relationship(

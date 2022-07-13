@@ -20,4 +20,3 @@ class PhoneForm(FlaskForm):
 class PlaylistForm(FlaskForm):
   """Form for creating a playlist"""
   title = StringField("Playlist Title", validators=[InputRequired()])
-  tag = StringField("Playlist Tag (#my_sms_playlist)", validators=[InputRequired()])

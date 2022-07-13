@@ -70,13 +70,15 @@ def get_profile_data(auth_header):
   return resp.json() # Use .json() to convert to a python Dict
 
 
-def create_playlist(auth_header, user_id, title):
+def create_spotify_playlist(auth_header, user_id, title):
   """Create a playlist on the users account"""
   
+  auth_header = json.loads(auth_header) 
+
   data = json.dumps({
   "name": title,
   "description": "Spotify SMS Playlist",
-  "public": True,
+  "public": False,
   "collaborative": True
   })
 
@@ -101,3 +103,6 @@ def get_track_ids_from_message(message):
     track_ids.append(track_id) # Append track_id to our list to return
 
   return track_ids
+
+
+# def add_tracks_to_playlist(message):
