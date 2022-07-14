@@ -1,7 +1,5 @@
 """Spotify GroupChat app"""
 
-from re import I
-from urllib import response
 from flask import Flask, redirect, render_template, flash, session, request
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_bootstrap import Bootstrap5
@@ -58,22 +56,21 @@ def login():
   display_name = profile_data['display_name']
   email = profile_data['email']
   url = profile_data['external_urls']['spotify']
-  id = profile_data['id']
+  id = profile_data['id'] # Use same id as spotify
 
   user = User.query.filter_by(email=email).first() # Look up user
 
   # If the user is not in the database
   if not user:
-    user = User(display_name=display_name, email=email, url=url, id=id, auth_header=auth_header) # Create User object
-    db.session.add(user) # Add User
-    db.session.commit()
+    user = User(display_name=display_name, email=email, url=url, id=id, auth_header_json=auth_header) # Create User object
+    db.session.add(user) # Add User to Database
+    db.session.commit() 
     flash('New Account Created!', 'success')
 
   else:
-    # Update auth header
-    user.auth_header = auth_header
-    db.session.add(user) 
-    db.session.commit()
+    user.auth_header_json = auth_header # Update auth header
+    db.session.add(user) # Update User
+    db.session.commit() 
     flash(f"Welcome back {user.display_name}!", 'success')
   
   session['user_id'] = user.id # Save user_id in session
@@ -102,19 +99,17 @@ def show_profile():
   
   user = User.query.get_or_404(session['user_id']) # Get user using user_id in session
   
-  # The first time a user logs in, they will not have a phone number associated with their account
-  # We need the user's phone number so redirect to the phone number form
+  # If the user soes not have a phone number, rediect the the phone number form
   if not user.phone_number:
     flash('Enter your phone number to create a playlist', 'warning')
     return redirect('/phone')
 
   form = PlaylistForm() # Form for making a new playlist
 
+  # When the form is submitted
   if form.validate_on_submit():
-    title = form.title.data
-
-    create_playlist(auth_header=user.auth_header, user_id=user.id, title=title)
-
+    title = form.title.data # Get title from form
+    create_playlist(auth_header=user.auth_header, user_id=user.id, title=title) # Create the playlist
     flash('Playlist Created', 'success')
     return redirect('/profile')
 
@@ -123,12 +118,13 @@ def show_profile():
 
 @app.route('/phone', methods = ['GET', 'POST'])
 def get_phone_number():
-  
+  """Get a user's phone number using the PhoneForm"""
+
   user = User.query.get_or_404(session['user_id']) # get User
   form = PhoneForm() # Form for getting phone numbers
 
   if form.validate_on_submit():
-    user.phone_number = form.phone.data # save user's phone number
+    user.phone_number = form.phone.data # Save the user's phone number
     db.session.add(user)
     db.session.commit()
     flash('Phone Number Updated', 'success')
@@ -158,29 +154,19 @@ def delete_playlist(playlist_id):
 @app.route('/api/receive_sms', methods=['POST'])
 def receive_sms():
   """Route for Twilio to pass in recieved messages"""
-  
-  number = request.form['From']
+
+  phone_number = request.form['From']
   body = request.form['Body']
   
-  ids = get_track_ids_from_message(body)
-  print(f"ids: {ids}")
+  track_ids = get_track_ids_from_message(body) # Scan message for track_ids
 
-  user = User.query.filter_by(phone_number=number).first()
-  print(f"found user: {user.display_name}")
-  playlist = Playlist.query.filter_by(owner_id=user.id).first()
-  print(f"found playlist: {playlist.title}")
-
-  add_tracks_to_playlist(playlist=playlist, track_ids=ids)  
+  # If there were track ids in the message body
+  if len(track_ids) > 0:
+    user = User.query.filter_by(phone_number=phone_number).first() # Get the user based on the phone_number
+    playlist = Playlist.query.filter_by(owner_id=user.id).first()
+    # If playlist exists
+    if playlist:
+      add_tracks_to_playlist(playlist=playlist, track_ids=track_ids)  
 
   resp = MessagingResponse ()
-  resp.message('track added!')
-  
   return str(resp)
-
-
-def attach_playlist_to_user(user, playlist):
-  """Set a user's playlist id"""
-  
-  user.playlist_id = playlist.id # Set id
-  db.session.add(user)
-  db.session.commit() # commit to database

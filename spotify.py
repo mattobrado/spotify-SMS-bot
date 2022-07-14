@@ -65,35 +65,32 @@ def get_auth_token_header(code):
 def get_profile_data(auth_header):
   """Make a request to the spotify API and return profile data"""
 
-  auth_header = json.loads(auth_header)
-
   resp = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header)
   return resp.json() # Use .json() to convert to a python Dict
 
 
 def create_playlist(auth_header, user_id, title):
   """Create a playlist on the users account"""
-  
-  auth_header = json.loads(auth_header) 
 
+  # Data for created playlist
   data = json.dumps({
     "name": title,
     "description": "Spotify SMS Playlist",
-    "public": False,
-    "collaborative": True
+    "public": False, # Collaborative playlists cannot be public
+    "collaborative": True 
   })
 
   create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user_id}/playlists"
 
-  playlist_request = requests.post(create_playlist_endpoint, headers=auth_header, data=data)
-  playlist_data = json.loads(playlist_request.text)
+  playlist_response= requests.post(create_playlist_endpoint, headers=auth_header, data=data)
+  playlist_data = json.loads(playlist_response.text) # Unpack response
   
-  id = playlist_data['id']
-  url = playlist_data['external_urls']['spotify']
-  endpoint = playlist_data['href']
-  owner_id = playlist_data['owner']['id']
+  id = playlist_data['id'] # Use the same id as spotify
+  url = playlist_data['external_urls']['spotify'] # Used for links in user interface
+  playlist_endpoint = playlist_data['href'] # Used for adding tracks
+  owner_id = playlist_data['owner']['id'] # Use the same owner id as spotify
 
-  new_playlist = Playlist(id=id, title=title, url=url, endpoint=endpoint, owner_id=owner_id)
+  new_playlist = Playlist(id=id, title=title, url=url, endpoint=playlist_endpoint, owner_id=owner_id)
   db.session.add(new_playlist)
   db.session.commit() # commit to database
   
@@ -116,17 +113,18 @@ def get_track_ids_from_message(message):
 
 
 def add_tracks_to_playlist(playlist, track_ids):
-  auth_header = json.loads(playlist.owner.auth_header)
+  """Make a post request to add the track_ids to the Spotify playlist"""
 
+  auth_header = playlist.owner.auth_header # get auth_header of the playlist's owner
   add_tracks_endpoint = playlist.endpoint + "/tracks"
   
-  print(add_tracks_endpoint)
-  uris_string = ''
-  for track_id in track_ids:
-    uris_string = uris_string + 'spotify:track:' + track_id
+  # Pass the track_ids to spotify in the query string with the key "uris"
+  uris_string = 'spotify:track:' + track_ids[0] # Format the first track track_ids[0]
 
-  params= {
-    "uris": uris_string
-  }
+  # For all track_ids after the first (track_ids[1:]) add them with a comma seperator
+  for track_id in track_ids[1:]:
+    uris_string = uris_string + ',' + 'spotify:track:' + track_id
 
-  add_track_request = requests.post(add_tracks_endpoint, headers=auth_header, params=params)
+  # Make the post request to add the tracks to the playlist
+  request = requests.post(add_tracks_endpoint, headers=auth_header, params={"uris": uris_string})
+  # print(request.text)

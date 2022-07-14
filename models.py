@@ -1,10 +1,9 @@
 """SQLAlchemy models"""
 
 from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
+import json
 
 db = SQLAlchemy() # Create database object
-bcrypt = Bcrypt() # Create bcrypt object
 
 def connect_db(app):
   """Connect database to the Flask app"""
@@ -25,9 +24,14 @@ class User(db.Model):
   email = db.Column(db.Text, nullable=False, unique=True)
   url = db.Column(db.Text, nullable=False)
   phone_number = db.Column(db.Text, unique=True)
-  auth_header = db.Column(db.Text, unique=True)
+  auth_header_json = db.Column(db.Text, unique=True)
   
   playlists = db.relationship("Playlist", backref="owner", cascade="all, delete-orphan")
+
+  @property
+  def auth_header(self):
+    """Unpack the json version of auth_header stored in database"""
+    return json.loads(self.auth_header_json)
 
 
 class Playlist(db.Model):
