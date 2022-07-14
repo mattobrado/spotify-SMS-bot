@@ -26,7 +26,8 @@
   <tbody>
     {% for playlist in user.playlists %}
     <tr scope="row">
-      <td><a href="{{ playlist.url }}">{{ playlist.title }}</a></td>
+      <!-- target="_blank" rel="noopener noreferrer" makes link open in new tab -->
+      <td><a href="{{ playlist.url }}" target="_blank" rel="noopener noreferrer">{{ playlist.title }}</a></td>
       <td>number-goes-here</td>
       <td>
         <form action="/profile/{{ playlist.id }}/delete" style="display:inline;" method="POST">

@@ -8,7 +8,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from my_secrets import SECRET_KEY
 from models import Playlist, connect_db, db, User
 from forms import PhoneForm, PlaylistForm
-from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_track_ids_from_message, create_playlist, get_auth_token_header, get_profile_data
+from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_track_ids_from_message, create_playlist, get_auth_tokens, get_user_data, refresh_access_token
 
 
 app = Flask(__name__) # Create Flask object
@@ -35,44 +35,20 @@ def root():
 
 @app.route('/authorize', methods=['GET', 'POST'])
 def get_authorization():
-  """1st call in the Spotify authorization process.
-  
-  Request authorization to auth data"""
+  """Make a call to the Spotify to request authorization to access a user's account"""
 
   return redirect(AUTHORIZATION_URL) # AUTHORIZATION_URL is assembled in spotify.py
 
 
 @app.route('/login')
 def login():
-  """2nd call in the Spotify authorization process.
-  
-  Request auth token"""
+  """Use code from spotify redirect to get authorizion and retrive or ceate a User"""
 
   code = request.args['code'] # Get code returned from authorization
-  auth_header = get_auth_token_header(code) # Get authorization header
+  auth_data = get_auth_tokens(code) # Get authorization header
+  user = get_user_data(auth_data) # Get a create a User based on their spotify profile data
 
-  profile_data = get_profile_data(auth_header) # Make an API request to get profile data
-
-  display_name = profile_data['display_name']
-  email = profile_data['email']
-  url = profile_data['external_urls']['spotify']
-  id = profile_data['id'] # Use same id as spotify
-
-  user = User.query.filter_by(email=email).first() # Look up user
-
-  # If the user is not in the database
-  if not user:
-    user = User(display_name=display_name, email=email, url=url, id=id, auth_header_json=auth_header) # Create User object
-    db.session.add(user) # Add User to Database
-    db.session.commit() 
-    flash('New Account Created!', 'success')
-
-  else:
-    user.auth_header_json = auth_header # Update auth header
-    db.session.add(user) # Update User
-    db.session.commit() 
-    flash(f"Welcome back {user.display_name}!", 'success')
-  
+  flash(f"Welcome {user.display_name}!", 'success')
   session['user_id'] = user.id # Save user_id in session
 
   return redirect('/profile')
@@ -109,7 +85,7 @@ def show_profile():
   # When the form is submitted
   if form.validate_on_submit():
     title = form.title.data # Get title from form
-    create_playlist(auth_header=user.auth_header, user_id=user.id, title=title) # Create the playlist
+    create_playlist(user=user, title=title) # Create the playlist
     flash('Playlist Created', 'success')
     return redirect('/profile')
 
@@ -160,10 +136,10 @@ def receive_sms():
   
   track_ids = get_track_ids_from_message(body) # Scan message for track_ids
 
-  # If there were track ids in the message body
+  # If track ids were found in the message body
   if len(track_ids) > 0:
     user = User.query.filter_by(phone_number=phone_number).first() # Get the user based on the phone_number
-    playlist = Playlist.query.filter_by(owner_id=user.id).first()
+    playlist = Playlist.query.filter_by(owner_id=user.id).first() # Get user's first playlist
     # If playlist exists
     if playlist:
       add_tracks_to_playlist(playlist=playlist, track_ids=track_ids)  

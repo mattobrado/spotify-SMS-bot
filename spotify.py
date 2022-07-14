@@ -1,11 +1,10 @@
-import base64
 import json
 import requests
 import re
 from urllib.parse import urlencode
 
-from my_secrets import SPOTIFY_CLIENT_SECRET
-from models import Playlist, db
+from my_secrets import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_CLIENT_HEADER 
+from models import User, Playlist, db
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
 SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'
@@ -14,7 +13,6 @@ SPOTIFY_TOKEN_URL = SPOTIFY_AUTH_BASE_URL + '/api/token'
 SPOTIFY_API_URL = 'https://api.spotify.com/v1'
 USER_PROFILE_ENDPOINT = SPOTIFY_API_URL + '/me'
 
-SPOTIFY_CLIENT_ID = '8ef7a04961aa4c45b0ff10b1357ae880'
 REDIRECT_URI = 'http://localhost:5000/login' 
 SCOPE = 'user-read-email playlist-modify-public playlist-modify-private' # Scope of authorization
 
@@ -31,17 +29,17 @@ AUTHORIZATION_URL = f"{SPOTIFY_AUTH_URL}?{urlencode(auth_query_parameters)}"
 
 
 # -------------------------- REQUEST ACCESS AND REFRESH TOKENS ----------------------------
-def get_auth_token_header(code):
+def get_auth_tokens(code):
   """2nd call in the Spotify Authetication process
 
   Pass the authorization code returned by the first call and the client 
   secret key to the Spotify Accounts Service '/api/token' endpoint. 
   
-  Returns an access token and also a refresh token.
+  Returns the HTTP response as a python dictionary which contains the access_token and
+  refresh_token
   """
   # Encode client id and secret key
-  client_info_base64encoded = base64.b64encode((f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}").encode()) 
-  headers = {"Authorization": f"Basic {client_info_base64encoded.decode()}"}
+
 
   data = {
       "code": str(code),
@@ -49,27 +47,85 @@ def get_auth_token_header(code):
       "grant_type": "authorization_code"
   }
 
-  # Pass the authorization code and the client s ecret key to the Spotify Accounts Service
-  auth_request = requests.post(SPOTIFY_TOKEN_URL, headers=headers, data=data)
+  # Pass authorization code and client secret key to the Spotify Accounts Service
+  auth_response = requests.post(SPOTIFY_TOKEN_URL, headers=SPOTIFY_CLIENT_HEADER , data=data)
 
   # Tokens returned 
-  response_data = json.loads(auth_request.text)
-  access_token = response_data["access_token"]
+  return json.loads(auth_response.text) #.json() to convert to a python dictionary
 
-  # Store access token to access Spotify API
-  auth_header = json.dumps({"Authorization": f"Bearer {access_token}"}) # json.dumps() so we can store the string in our database
-  return auth_header
+
+def refresh_access_token(user):
+  """Get a new access token when the old access token is expired"""
+
+  data = {
+    "grant_type": "refresh_token",
+    "refresh_token": user.refresh_token
+  }
+
+  auth_response = requests.post(SPOTIFY_TOKEN_URL, headers=SPOTIFY_CLIENT_HEADER, data=data)
+  auth_data = json.loads(auth_response.text)
+
+  user.access_token = auth_data["access_token"]
+
+  db.session.add(user)
+  db.session.commit()
+  return user
+
+
+def make_authorized_api_call(user, endpoint, headers, data=None, params=None):
+  """Make an authorized api call with protection against expired access tokens.
+
+  Return the responce in a python dictionary"""
+
+  request = requests.post(endpoint, headers=headers, data=data,params=params)
+  # Check for expired access token (error code 401)
+  if request.status_code == 401:
+    refresh_access_token(user) #refresh the owner's access_token
+    request = requests.post(endpoint, headers=headers, data=data,params=params) # make the request again
+  
+  return json.loads(request.text) # Unpack response
 
 
 # -------------------------- OTHER REQUESTS ---------------------------
-def get_profile_data(auth_header):
-  """Make a request to the spotify API and return profile data"""
+def get_user_data(auth_data):
+  """Make a request to the spotify API and return a User object"""
 
-  resp = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header)
-  return resp.json() # Use .json() to convert to a python Dict
+  access_token = auth_data["access_token"]
+  refresh_token = auth_data["refresh_token"]
+
+  auth_header = {"Authorization": f"Bearer {access_token}"}
+
+  response = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header)
+
+  profile_data = response.json()
+
+  # Get data from response
+  display_name = profile_data['display_name']
+  email = profile_data['email']
+  url = profile_data['external_urls']['spotify']
+  id = profile_data['id'] # Use same id as spotify
+
+  user = User.query.filter_by(email=email).first() # Check if the User is already in the Database using email address
+
+  # If the user is not in the database
+  if not user:
+    # Create User object
+    user = User(display_name=display_name, email=email, url=url, id=id, access_token=access_token, refresh_token=refresh_token)
+    db.session.add(user) # Add User to Database
+    db.session.commit() 
+    # flash('New Account Created!', 'success')
+
+  # If the User already exits update the access token and refresh token 
+  else:
+    user.access_token = access_token # Update access_token
+    user.refresh_token = refresh_token # Update access_token
+    db.session.add(user) # Update User
+    db.session.commit() 
+
+  return  user # return the User object
 
 
-def create_playlist(auth_header, user_id, title):
+def create_playlist(user, title):
   """Create a playlist on the users account"""
 
   # Data for created playlist
@@ -80,11 +136,10 @@ def create_playlist(auth_header, user_id, title):
     "collaborative": True 
   })
 
-  create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user_id}/playlists"
+  create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user.id}/playlists"
 
-  playlist_response= requests.post(create_playlist_endpoint, headers=auth_header, data=data)
-  playlist_data = json.loads(playlist_response.text) # Unpack response
-  
+  playlist_data = make_authorized_api_call(user=user, endpoint=create_playlist_endpoint, headers=user.auth_header, data=data)
+
   id = playlist_data['id'] # Use the same id as spotify
   url = playlist_data['external_urls']['spotify'] # Used for links in user interface
   playlist_endpoint = playlist_data['href'] # Used for adding tracks
@@ -126,5 +181,4 @@ def add_tracks_to_playlist(playlist, track_ids):
     uris_string = uris_string + ',' + 'spotify:track:' + track_id
 
   # Make the post request to add the tracks to the playlist
-  request = requests.post(add_tracks_endpoint, headers=auth_header, params={"uris": uris_string})
-  # print(request.text)
+  make_authorized_api_call(user=playlist.owner, endpoint=add_tracks_endpoint, headers=auth_header, params={"uris": uris_string})
