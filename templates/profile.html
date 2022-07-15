@@ -3,7 +3,7 @@
 {% block title %}{{ user.display_name }}{% endblock %}
 
 {% block content %}
-<h1>{{ user.display_name }}'s SMS playlists</h1>
+<h1>{{ user.display_name }}'s SMS playlist</h1>
 <a href="/phone">Update phone number</a>
 <form method="POST">
   {{ form.hidden_tag() }}

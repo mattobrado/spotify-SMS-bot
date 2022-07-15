@@ -72,16 +72,16 @@ def refresh_access_token(user):
   return user
 
 
-def make_authorized_api_call(user, endpoint, headers, data=None, params=None):
+def make_authorized_api_call(user, endpoint, data=None, params=None):
   """Make an authorized api call with protection against expired access tokens.
 
   Return the responce in a python dictionary"""
 
-  request = requests.post(endpoint, headers=headers, data=data,params=params)
+  request = requests.post(endpoint, headers=user.auth_header, data=data,params=params)
   # Check for expired access token (error code 401)
   if request.status_code == 401:
     refresh_access_token(user) #refresh the owner's access_token
-    request = requests.post(endpoint, headers=headers, data=data,params=params) # make the request again
+    request = requests.post(endpoint, headers=user.auth_header, data=data,params=params) # make the request again
   
   return json.loads(request.text) # Unpack response
 
@@ -138,7 +138,7 @@ def create_playlist(user, title):
 
   create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user.id}/playlists"
 
-  playlist_data = make_authorized_api_call(user=user, endpoint=create_playlist_endpoint, headers=user.auth_header, data=data)
+  playlist_data = make_authorized_api_call(user=user, endpoint=create_playlist_endpoint, data=data)
 
   id = playlist_data['id'] # Use the same id as spotify
   url = playlist_data['external_urls']['spotify'] # Used for links in user interface
@@ -147,6 +147,8 @@ def create_playlist(user, title):
 
   new_playlist = Playlist(id=id, title=title, url=url, endpoint=playlist_endpoint, owner_id=owner_id)
   db.session.add(new_playlist)
+  user.active_playlist_id = id
+  db.session.add(user)
   db.session.commit() # commit to database
   
   return new_playlist
@@ -181,4 +183,4 @@ def add_tracks_to_playlist(playlist, track_ids):
     uris_string = uris_string + ',' + 'spotify:track:' + track_id
 
   # Make the post request to add the tracks to the playlist
-  make_authorized_api_call(user=playlist.owner, endpoint=add_tracks_endpoint, headers=auth_header, params={"uris": uris_string})
+  make_authorized_api_call(user=playlist.owner, endpoint=add_tracks_endpoint, params={"uris": uris_string})
