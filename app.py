@@ -6,7 +6,7 @@ from flask_bootstrap import Bootstrap5
 from twilio.twiml.messaging_response import MessagingResponse
 
 from my_secrets import SECRET_KEY
-from models import Playlist, connect_db, db, User
+from models import PhoneNumber, Playlist, connect_db, db, User
 from forms import PhoneForm, PlaylistForm
 from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_track_ids_from_message, create_playlist, get_auth_tokens, get_user_data, refresh_access_token
 
@@ -76,6 +76,7 @@ def show_profile():
   user = User.query.get_or_404(session['user_id']) # Get user using user_id in session
   
   # If the user soes not have a phone number, rediect the the phone number form
+  
   if not user.phone_number:
     flash('Enter your phone number to create a playlist', 'warning')
     return redirect('/phone')
@@ -100,7 +101,9 @@ def get_phone_number():
   form = PhoneForm() # Form for getting phone numbers
 
   if form.validate_on_submit():
-    user.phone_number = form.phone.data # Save the user's phone number
+    new_phone_number = PhoneNumber(number=form.phone.data) # Save the user's phone number
+    db.session.add(new_phone_number)
+    user.phone_number = form.phone.data
     db.session.add(user)
     db.session.commit()
     flash('Phone Number Updated', 'success')

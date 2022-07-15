@@ -4,7 +4,7 @@ from models import User, Playlist, db
 from app import app
 
 # Create all tables
-db.drop_all()
+# db.drop_all()
 db.create_all()
 
 # Add playlists

@@ -3,7 +3,7 @@ import requests
 import re
 from urllib.parse import urlencode
 
-from my_secrets import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_CLIENT_HEADER 
+from my_secrets import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_HEADER 
 from models import User, Playlist, db
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
