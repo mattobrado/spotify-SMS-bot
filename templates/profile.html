@@ -4,16 +4,22 @@
 {% block user %}{{ host_user.display_name }}{% endblock %}
 
 {% block content %}
-<h6>Select Playlist</h6>
 <form method="POST">
   {{ form.hidden_tag() }}
 
-  {% for field in form if field.widget.input_type != 'hidden' %}
-    {% for error in field.errors %}
-      <span class="text-danger">{{ error }}</span>
-    {% endfor %}
-    {{ field(placeholder=field.label.text, class="form-control", onchange="submit()") }}
-  {% endfor %}
+  <div class="container">
+    <div class="row">
+      {% for field in form if field.widget.input_type != 'hidden' %}
+        {% for error in field.errors %}
+          <span class="text-danger">{{ error }}</span>
+        {% endfor %}
+        {{ field(placeholder="Select Playlist", class="form-control col") }}
+      {% endfor %}
+      <button class="btn btn-primary col-2">Submit</button>
+    </div>
+  </div>
+  
+</form>
 
 <h1>{{playlist.title}} #{{playlist.key}}</h3>
 <table class="table">

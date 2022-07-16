@@ -47,17 +47,17 @@ class SelectPlaylistForm(FlaskForm):
 
   # host_user_id = StringField()
 
-  playlist = SelectField('Select Playlist')
-  submit= SubmitField()
+  playlist = SelectField('Select Playlist', description="test")
+  # submit= SubmitField()
 
 def load_select_playlist_form_choices(host_user):
   """Populate Seclect Playlist form with choices"""
 
   select_form = SelectPlaylistForm() # Form for making a new playlist
 
-  choices = []
-  for playlist_choice in host_user.playlists:
-    choices.append((playlist_choice.id, playlist_choice.title))
+  choices = [("","Select Playlist")]
+  for playlist in host_user.playlists:
+    choices.append((playlist.id, f"{playlist.title} #{playlist.key}"))
   select_form.playlist.choices = choices
 
   return select_form
