@@ -11,27 +11,26 @@
   {% endblock %}
 
   <title>
-    Spotify SMS Playlists&ndash; {% block title %}{% endblock %}
+    Spotify Text Playlists&ndash; {% block title %}{% endblock %}
   </title>
-  <!-- <link rel="stylesheet"
-        href="https://unpkg.com/bootstrap/dist/css/bootstrap.css"> -->
 </head>
 <body>
 <nav class="navbar navbar-expand">
   <div class="container">
     <div class="navbar-header">
       <a href="/" class="navbar-brand">
-        <span>Spotify SMS Playlists</span>
+        <span>Spotify Text Message Playlists</span>
       </a>
     </div>
     <ul class="nav navbar-nav narbar-right">
-      <li><a href="/profile/playlists">Create Another Playlist</a></li>
-      <li><a href="/phone">Update phone number</a></li>
-      <li><a href="/switch-user">Switch User</a></li>
+      <li><a href="/profile">View Tracks</a></li>
+      <li><a href="/playlists">Create Another Playlist</a></li>
+      <li><a href="/phone">Update Phone Number</a></li>
     </ul>
   </div>
 </nav>
 <div class="container">
+  <p class="lead"> Logged in as {% block user %}{% endblock %} <small>(<a class="text-muted"href="/switch-user">switch user</a>)</small></p>
   {% for category, message in get_flashed_messages(with_categories=True) %}
   <div class="alert alert-{{ category }}">{{ message }}</div>
   {% endfor %}

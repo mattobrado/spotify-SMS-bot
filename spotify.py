@@ -189,7 +189,7 @@ def get_or_create_track(host_user, track_id):
     )
     # if the request was successful
     if track_data:
-      print(track_data)
+
       id = track_data['id'] # Use same id as spotify
       name = track_data['name']
       artist = track_data['artists'][0]['name']

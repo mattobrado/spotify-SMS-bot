@@ -97,25 +97,14 @@ def show_profile(playlist_id):
 
   playlist = Playlist.query.get_or_404(playlist_id) # Get the playlist
 
-  select_form = load_select_playlist_form_choices(host_user=host_user)
+  form = load_select_playlist_form_choices(host_user=host_user)
 
   # When the form is submitted
-  if select_form.validate_on_submit():
-    new_playlist_id = select_form.playlist.data 
-    flash('Playlist Created', 'success')
+  if form.validate_on_submit():
+    new_playlist_id = form.playlist.data 
     return redirect(f"/profile/{new_playlist_id}")  
 
-  create_form = CreatePlaylistForm() # Form for making a new playlist
-
-  # When the form is submitted
-  if create_form.validate_on_submit():
-    title = create_form.title.data # Get title from form
-    key = create_form.key.data.lower()
-    create_playlist(host_user=host_user, title=title, key=key) # Create the playlist
-    flash('Playlist Created', 'success')
-    return redirect('/profile')
-
-  return render_template('profile.html', user=host_user, playlist=playlist, select_form=select_form, create_form=create_form)
+  return render_template('profile.html', user=host_user, playlist=playlist, form=form)
 
 
 @app.route('/phone', methods = ['GET', 'POST'])
@@ -140,6 +129,29 @@ def get_phone_number():
     return redirect('/profile')
   
   return render_template('phone.html', user=host_user, form=form)
+
+@app.route('/playlists', methods = ['GET', 'POST'])
+def show_playlists():
+  """Show a users playlists
+  """
+  # Prevent users from jumping ahead to /profile without first authorizing
+  if 'host_user_id' not in session:
+    flash('Please log in', 'warning')
+    return redirect('/authorize')
+
+  host_user = HostUser.query.get_or_404(session['host_user_id']) # Get host_user using host_user_id in session
+
+  form = CreatePlaylistForm() # Form for making a new playlist
+
+  # When the form is submitted
+  if form.validate_on_submit():
+    title = form.title.data # Get title from form
+    key = form.key.data.lower()
+    create_playlist(host_user=host_user, title=title, key=key) # Create the playlist
+    flash('Playlist Created', 'success')
+    return redirect('/profile')
+
+  return render_template('playlists.html', user=host_user, form=form)
 
 
 @app.route('/profile/<int:playlist_id>/delete', methods=['POST'])
