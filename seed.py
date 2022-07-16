@@ -12,19 +12,19 @@ db.create_all()
 # bobeode = HostUser(display_name="bobeode",email="bobeode@gmail.com",url="fakeurl.com")
 # wolfgang = HostUser(display_name="wolfgang",email="wolfgang@gmail.com",url="fakeurl.com")
 # yikem = HostUser(display_name="yikem",email="yikem@gmail.com",url="fakeurl.com")
-djobrad = HostUser(display_name="djobrad",email="mcobradovic@yahoo.com",url="https://open.spotify.com/user/1245079776", id=1245079776)
+# djobrad = HostUser(display_name="djobrad",email="mcobradovic@yahoo.com",url="https://open.spotify.com/user/1245079776", id=1245079776)
 
 # db.session.add(bobeode)
 # db.session.add(wolfgang)
 # db.session.add(yikem)
-db.session.add(djobrad)
-db.session.commit()
+# db.session.add(djobrad)
+# db.session.commit()
 
 # Add playlists
-seed_playlist = Playlist(id='50dsaJ615KCP3WTRBd5e2v', title='Seed Playlist', key='key', url='https://open.spotify.com/playlist/50dsaJ615KCP3WTRBd5e2v', endpoint='https://api.spotify.com/v1/playlists/50dsaJ615KCP3WTRBd5e2v', owner_id='1245079776')
+# seed_playlist = Playlist(id='50dsaJ615KCP3WTRBd5e2v', title='Seed Playlist', key='key', url='https://open.spotify.com/playlist/50dsaJ615KCP3WTRBd5e2v', endpoint='https://api.spotify.com/v1/playlists/50dsaJ615KCP3WTRBd5e2v', owner_id='1245079776')
 
-db.session.add(seed_playlist)
-db.session.commit()
+# db.session.add(seed_playlist)
+# db.session.commit()
 
 # # Add songs
 # happy_birthday = Track(title="Happy Birthday", artist="Party People")

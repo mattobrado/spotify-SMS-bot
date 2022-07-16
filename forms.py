@@ -1,4 +1,5 @@
 """WTForms"""
+
 from selectors import SelectSelector
 from click import secho
 from flask_wtf import FlaskForm

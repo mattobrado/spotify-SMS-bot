@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ user.display_name }}{% endblock %}
-{% block user %}{{ user.display_name }}{% endblock %}
+{% block title %}{{ host_user.display_name }}{% endblock %}
+{% block user %}{{ host_user.display_name }}{% endblock %}
 
 {% block content %}
 <h6>Select Playlist</h6>
@@ -28,7 +28,7 @@
       <!-- target="_blank" rel="noopener noreferrer" makes link open in new tab -->
       <td>{{ track.name }}</td>
       <td>{{ track.artist }}</td>
-      <td>{{ track.added_by(playlist=user.active_playlist) }}</td>
+      <td>{{ track.added_by(playlist=host_user.active_playlist) }}</td>
     </tr>
     {% endfor %}
   </tbody>
