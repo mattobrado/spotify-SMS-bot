@@ -190,26 +190,17 @@ def delete_playlist(playlist_id):
 
 @app.route('/profile/<string:playlist_id>/activate', methods=['POST'])
 def activate_playlist(playlist_id):
-  """Delete a playlist"""
+  """Set a playlist to be a user's active playlist"""
 
+  host_user = get_host_user_from_session()
   playlist = Playlist.query.get_or_404(playlist_id) # Get the playlist
 
-  # If the host user is the owner of the playlist
-  if playlist.owner_id == session['host_user_id']:
-    # Get users who have that playlist as their active playlist
-    guest_users = GuestUser.query.filter_by(active_playlist_id=playlist_id).all()
-    for guest_user in guest_users:
-      guest_user.active_playlist_id = None # Set thier active playlist id to None
-      db.session.add(guest_user)
-    
-    db.session.delete(playlist) # delete the playlist (This will not delete the playlist on spotify)
+  if playlist:
+    host_user.active_playlist_id = playlist.id
+    db.session.add(host_user) 
     db.session.commit()
-    flash('Playlist Deleted', 'warning')
-    return redirect('/playlists')
-  
-  # HostUser is not authorized to delete the playlist
-  else:
-    flash('You cannot delete that playlist')
+    flash('Playlist Activated', 'success')
+    return redirect(f"/profile/{playlist.id}")
 
   return redirect('/profile')
 

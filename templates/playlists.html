@@ -20,12 +20,13 @@
     </div>
   </form>
 </div>
-<div class="container" style="margin-top:25px">
+<div class="container has-top-margin">
   <table class="table">
     <thead>
       <th scope="col">Your Playlists</th>
       <th scope="col">Key</th>
-      <th scope="col">Delete</th>
+      <th class="col-1" scope="col">Activate</th>
+      <th class="col-1" scope="col halign">Delete</th>
     </thead>
     <tbody>
       {% for playlist in host_user.playlists %}
@@ -33,6 +34,11 @@
         <!-- target="_blank" rel="noopener noreferrer" makes link open in new tab -->
         <td><a href="/profile/{{ playlist.id }}">{{ playlist.title }}</a></td>
         <td>#{{ playlist.key }}</td>
+        <td>
+          <form action="/profile/{{ playlist.id }}/activate" style="display:inline;" method="POST">
+            <button class="btn btn-sm btn-primary">Activate</button>
+          </form>
+        </td>
         <td>
           <form action="/profile/{{ playlist.id }}/delete" style="display:inline;" method="POST">
             <button class="btn btn-sm btn-danger">Delete</button>

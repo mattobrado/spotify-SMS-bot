@@ -14,24 +14,29 @@
         {% for error in field.errors %}
           <span class="text-danger">{{ error }}</span>
         {% endfor %}
-        {{ field(placeholder="Select Playlist", class="form-control col") }}
+        {{ field(placeholder="Select Playlist", class="form-control text-muted col") }}
       {% endfor %}
       <button class="btn btn-primary col-2">Go</button>
     </div>
   </form>
 </div>
-<div class="container" style="margin-top:25px">
+<div class="container has-top-margin">
   <div class="row">
     <h1 class="col"><a href="{{playlist.url}}" target="_blank" rel="noopener noreferrer">{{playlist.title}}</a> #{{playlist.key}}</h1>
   </div>
   <div class="row">
     <button class="btn btn-sm btn-secondary col-2" onClick="window.location.reload();">Refresh</button>
+    <form class="col-2" action="/profile/{{ playlist.id }}/activate" style="display:inline;" method="POST">
+      <button class="btn btn-sm btn-secondary col-12">Activate</button>
+    </form>
   </div>
+</div>
+<div class="container has-top-margin">
   <table class="table table-striped">
     <thead>
       <th scope="col">Track</th>
       <th scope="col">Artist</th>
-      <th scope="col">Added By</th>
+      <th class="col-3"scope="col">Added By</th>
     </thead>
     <tbody>
       {% for track in playlist.tracks %}
