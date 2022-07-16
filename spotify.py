@@ -4,7 +4,7 @@ import re
 from urllib.parse import urlencode
 
 from my_secrets import MY_TWILIO_NUMBER, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_HEADER 
-from models import HostUser, Playlist, db
+from models import HostUser, Playlist, PlaylistTrack, Track, db
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
 SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'
@@ -72,21 +72,29 @@ def refresh_access_token(user):
   return user
 
 
-def make_authorized_api_call(user, endpoint, data=None, params=None):
+def make_authorized_api_call(host_user, endpoint, method='POST', data=None, params=None):
   """Make an authorized api call with protection against expired access tokens.
 
   Return the responce in a python dictionary"""
+  if method == 'POST':
+    request_method = requests.post
+  elif method == 'GET':
+    request_method = requests.get
 
-  request = requests.post(endpoint, headers=user.auth_header, data=data,params=params)
+  request = request_method(endpoint, headers=host_user.auth_header, data=data,params=params)
   # Check for expired access token (error code 401)
   if request.status_code == 401:
-    refresh_access_token(user) #refresh the owner's access_token
-    request = requests.post(endpoint, headers=user.auth_header, data=data,params=params) # make the request again
-  
-  return json.loads(request.text) # Unpack response
+    refresh_access_token(host_user) #refresh the owner's access_token
+    request = request_method(endpoint, headers=host_user.auth_header, data=data,params=params) # make the request again
+  # print(request.status_code)
+  if request.status_code < 400:
+    return json.loads(request.text) # Unpack response
+  else:
+    return None
 
 
-# -------------------------- OTHER REQUESTS ---------------------------
+# -------------------------- DATABASE ---------------------------
+
 def get_or_create_host_user(auth_data):
   """Make a request to the spotify API and return a HostUser object"""
 
@@ -135,7 +143,7 @@ def create_playlist(host_user, title, key):
 
   create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{host_user.id}/playlists"
 
-  playlist_data = make_authorized_api_call(user=host_user, endpoint=create_playlist_endpoint, data=data)
+  playlist_data = make_authorized_api_call(host_user=host_user, endpoint=create_playlist_endpoint, data=data)
 
   id = playlist_data['id'] # Use the same id as spotify
   url = playlist_data['external_urls']['spotify'] # Used for links in user interface
@@ -151,6 +159,32 @@ def create_playlist(host_user, title, key):
   
   return new_playlist
 
+
+def get_or_create_track(host_user, track_id):
+  """Make an API call to get rack data"""
+
+  track = Track.query.filter_by(id=track_id).first() # Check if the Track is already in the Database
+  
+  if not track:
+    get_track_endpoint = SPOTIFY_API_URL + '/tracks/' + track_id
+    track_data = make_authorized_api_call(
+      host_user=host_user, 
+      method='GET', 
+      endpoint=get_track_endpoint
+    )
+    # if the request was successful
+    if track_data:
+      print(track_data)
+      id = track_data['id'] # Use same id as spotify
+      name = track_data['name']
+      artist = track_data['artists'][0]['name']
+      track = Track(id=id, name=name, artist=artist)
+      db.session.add(track)
+      db.session.commit()
+    
+  return track
+
+# -------------------------- OTHER REQUESTS ---------------------------
 
 def get_track_ids_from_message(message):
   """Returns a list of Spotify track URLs in a string"""
@@ -179,23 +213,31 @@ def get_playlist_key_from_message(message):
     return None
 
 
-def add_tracks_to_playlist(playlist, track_ids):
+def add_tracks_to_playlist(playlist, track_ids, added_by=None):
   """Make a post request to add the track_ids to the Spotify playlist"""
 
   add_tracks_endpoint = playlist.endpoint + "/tracks"
   
-  # Pass the track_ids to spotify in the query string with the key "uris"
-  uris_string = 'spotify:track:' + track_ids[0] # Format the first track track_ids[0]
-
   # For all track_ids after the first (track_ids[1:]) add them with a comma seperator
-  for track_id in track_ids[1:]:
-    uris_string = uris_string + ',' + 'spotify:track:' + track_id
+  for track_id in track_ids:
+    uris_string = 'spotify:track:' + track_id # Format the first track track_ids[0]
 
-  # Make the post request to add the tracks to the playlist
-  make_authorized_api_call(user=playlist.owner, endpoint=add_tracks_endpoint, params={"uris": uris_string})
-
-def get_track(user, track_id):
-  """Make an API call to get rack data"""
-
-  get_track_endpoint = SPOTIFY_API_URL + '/tracks' + track_id
-  return make_authorized_api_call(user=user, endpoint=get_track_endpoint)
+    # Make the post request to add the tracks to the playlist
+    response = make_authorized_api_call(
+      host_user=playlist.owner, 
+      endpoint=add_tracks_endpoint, 
+      params={"uris": uris_string}  # Pass the track_ids to spotify in the query string with the key "uris"
+    )
+    # If the request was successful
+    if response:
+      track = get_or_create_track(host_user=playlist.owner, track_id=track_id)
+      new_playlist_track = PlaylistTrack(
+        playlist_id=playlist.id, 
+        track_id=track.id,
+        added_by=added_by
+      )
+      db.session.add(new_playlist_track)
+      db.session.commit()
+      return new_playlist_track
+  
+  return None

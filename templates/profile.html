@@ -35,7 +35,23 @@
         </form>
       </td>
     </tr>
-
+    {% endfor %}
+  </tbody>
+</table>
+<table class="table">
+  <thead>
+    <th scope="col">Track</th>
+    <th scope="col">Artist</th>
+    <th scope="col">Added By</th>
+  </thead>
+  <tbody>
+    {% for track in user.active_playlist.tracks %}
+    <tr scope="row">
+      <!-- target="_blank" rel="noopener noreferrer" makes link open in new tab -->
+      <td>{{ track.name }}</td>
+      <td>{{ track.artist }}</td>
+      <td>{{ track.added_by(playlist=user.active_playlist) }}</td>
+    </tr>
     {% endfor %}
   </tbody>
 </table>

@@ -61,22 +61,41 @@ class Playlist(db.Model):
   endpoint = db.Column(db.Text, nullable=False)
 
   owner_id = db.Column(db.Integer, db.ForeignKey('host_users.id'), nullable=False)
-  active_users = db.relationship("GuestUser", backref="active_playlist", cascade="all, delete-orphan")
+  active_users = db.relationship(
+    "GuestUser", 
+    backref="active_playlist", 
+    cascade="all, delete-orphan"
+  )
+  
+  tracks = db.relationship(
+    'Track',
+    secondary="playlist_tracks",
+    cascade="all,delete",
+    backref="playlists"
+  )
+
+class PlaylistTrack(db.Model):
+  """A track in a playlist that was added by someone with a text message"""
+
+  __tablename__ = "playlist_tracks"
+
+  playlist_id = db.Column(db.Text, db.ForeignKey('playlists.id'), primary_key=True)
+  track_id = db.Column(db.Text, db.ForeignKey('tracks.id'), primary_key=True)
+  added_by = db.Column(db.Text, db.ForeignKey('guest_users.phone_number'))
 
 
-# class Track(db.Model):
-#   """Track"""
+class Track(db.Model):
+  """Track"""
 
-#   __tablename__ = 'tracks'
+  __tablename__ = 'tracks'
 
-#   id = db.Column(db.Text, primary_key=True)
-#   title = db.Column(db.Text, nullable=False)
-#   artist = db.Column(db.Text, nullable=False)
+  id = db.Column(db.Text, primary_key=True)
+  name = db.Column(db.Text, nullable=False)
+  artist = db.Column(db.Text, nullable=False)
+  
+  # @property
+  def added_by(self, playlist):
+    playlist_track = PlaylistTrack.query.filter_by(track_id=self.id,playlist_id=playlist.id).first()
+    if playlist_track:
 
-
-# class TrackInPlaylist(db.Model):
-#   """A track in a playlist that was added by someone with a text message"""
-
-#   playlist_id = db.Column(db.Text, db.ForeignKey('playlists.id'), primary_key=True)
-#   track_id = db.Column(db.Text, db.ForeignKey('tracks.id'), primary_key=True)
-#   added_by = db.Column(db.Text, unique=True)
+      return playlist_track.added_by

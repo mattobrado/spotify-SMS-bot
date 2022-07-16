@@ -151,29 +151,19 @@ def receive_sms():
   print(playlist_key )
 
   if playlist_key or track_ids:
-    guest_user = GuestUser.query.filter_by(phone_number=phone_number).first
+    guest_user = GuestUser.query.filter_by(phone_number=phone_number).first()
 
     if playlist_key:
-      playlist = Playlist.query.filter_by(key=playlist_key).first() # Get phone number's first playlist
-      # If playlist exists
-      if playlist:
         guest_user.active_playlist = playlist.id
 
     if track_ids:
-      playlist = Playlist.query.filter_by(id=guest_user.active_playlist).first() # Get phone number's first playlist
-      # If playlist exists
-      if playlist:
-        add_tracks_to_playlist(playlist=playlist, track_ids=track_ids)  
-
-
-
-  # # If track ids were found in the message body
-  # if len(track_ids) > 0:
-  #   phone_number = GuestUser.query.filter_by(number=phone_number).first() # Get the user based on the phone_number
-  #   playlist = Playlist.query.filter_by(owner_id=user.id).first() # Get user's first playlist
-    
-    
-    
+      if guest_user.active_playlist_id:
+        playlist = Playlist.query.filter_by(id=guest_user.active_playlist_id).first() # Get phone number's first playlist
+        # If playlist exists
+        if playlist:
+          add_tracks_to_playlist(playlist=playlist, track_ids=track_ids, added_by=phone_number)
+      else:
+        print("send sms asking for key goes here")
 
 
   resp = MessagingResponse ()
