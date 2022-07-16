@@ -17,8 +17,12 @@ class GuestUser(db.Model):
 
   id = db.Column(db.Integer, primary_key=True)
   phone_number = db.Column(db.Text, unique=True)
-  active_playlist_id = db.Column(db.Text, db.ForeignKey('playlists.id'))
+  active_playlist_id = db.Column(db.Text)
   user_type = db.Column(db.String(32), nullable=False)
+
+  @property
+  def active_playlist(self):
+    return Playlist.query.filter_by(id=self.active_playlist_id).first()
 
   __mapper_args__ = {
     "polymorphic_identity": "guest_users",
@@ -61,16 +65,11 @@ class Playlist(db.Model):
   endpoint = db.Column(db.Text, nullable=False)
 
   owner_id = db.Column(db.Integer, db.ForeignKey('host_users.id'), nullable=False)
-  active_users = db.relationship(
-    "GuestUser", 
-    backref="active_playlist", 
-    cascade="all, delete-orphan"
-  )
   
   tracks = db.relationship(
     'Track',
     secondary="playlist_tracks",
-    cascade="all,delete",
+    cascade="all, delete",
     backref="playlists"
   )
 
@@ -81,7 +80,7 @@ class PlaylistTrack(db.Model):
 
   playlist_id = db.Column(db.Text, db.ForeignKey('playlists.id'), primary_key=True)
   track_id = db.Column(db.Text, db.ForeignKey('tracks.id'), primary_key=True)
-  added_by = db.Column(db.Text, db.ForeignKey('guest_users.phone_number'))
+  added_by = db.Column(db.Text)
 
 
 class Track(db.Model):
@@ -97,5 +96,4 @@ class Track(db.Model):
   def added_by(self, playlist):
     playlist_track = PlaylistTrack.query.filter_by(track_id=self.id,playlist_id=playlist.id).first()
     if playlist_track:
-
       return playlist_track.added_by

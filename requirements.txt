@@ -26,3 +26,4 @@ twilio==7.10.0
 urllib3==1.26.10
 Werkzeug==2.1.2
 WTForms==3.0.1
+WTForms-SQLAlchemy==0.3

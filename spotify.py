@@ -4,7 +4,7 @@ import re
 from urllib.parse import urlencode
 
 from my_secrets import MY_TWILIO_NUMBER, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_HEADER 
-from models import HostUser, Playlist, PlaylistTrack, Track, db
+from models import GuestUser, HostUser, Playlist, PlaylistTrack, Track, db
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
 SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'
@@ -130,6 +130,21 @@ def get_or_create_host_user(auth_data):
   return host_user # return the HostUser object
 
 
+def get_or_create_guest_user(phone_number):
+  """Get or create a guest user object"""
+
+  guest_user = GuestUser.query.filter_by(phone_number=phone_number).first() # Check if the HostUser is already in the Database using email address
+
+  # If the user is not in the database
+  if not guest_user:
+    # Create HostUser object
+    guest_user = GuestUser(phone_number=phone_number)
+    db.session.add(guest_user) # Add HostUser to Database
+    db.session.commit() 
+
+  return guest_user # return the HostUser object
+
+
 def create_playlist(host_user, title, key):
   """Create a playlist on the users account"""
 
@@ -153,7 +168,7 @@ def create_playlist(host_user, title, key):
   new_playlist = Playlist(id=id, title=title, key=key, url=url, endpoint=playlist_endpoint, owner_id=owner_id)
   db.session.add(new_playlist)
 
-  host_user.active_playlist = new_playlist
+  host_user.active_playlist_id = new_playlist.id
   db.session.add(host_user)
   db.session.commit() # commit to database
   
@@ -208,7 +223,7 @@ def get_playlist_key_from_message(message):
 
   # if keys were found
   if keys:
-    return keys[0].lower() # return the first key in lowercase
+    return keys[0].replace('#', '').lower() # return the first key in lowercase
   else:
     return None
 

@@ -1,13 +1,18 @@
 """WTForms"""
+from selectors import SelectSelector
+from click import secho
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import InputRequired, ValidationError, DataRequired, Regexp, Length
+from wtforms_sqlalchemy.fields import QuerySelectField
 import phonenumbers
 
 from models import Playlist
 
-# PhoneForm was provided by Twilio
+
 class PhoneForm(FlaskForm):
+  """PhoneForm was provided by Twilio"""
+
   phone = StringField('Phone', validators=[DataRequired()])
   submit = SubmitField('Submit')
 
@@ -19,10 +24,13 @@ class PhoneForm(FlaskForm):
     except (phonenumbers.phonenumberutil.NumberParseException, ValueError):
       raise ValidationError('Invalid phone number')
 
-class PlaylistForm(FlaskForm):
+
+class CreatePlaylistForm(FlaskForm):
   """Form for creating a playlist"""
+
   title = StringField("Playlist Title", validators=[InputRequired()])
   key = StringField("Playlist Key. Your friends will use this key to add tracks", validators=[DataRequired(), Regexp(r'^[\w.@+-]+$'), Length(min=3, max=12)])
+  submit = SubmitField()
 
   def validate_key(self, key):
     """Check that the key is not already taken"""
@@ -31,4 +39,24 @@ class PlaylistForm(FlaskForm):
     # If playlist exists
     if playlist:
       raise ValidationError('Key is already taken!')
-    
+
+
+class SelectPlaylistForm(FlaskForm):
+  """Form for seclecting a playlist to view"""
+
+  # host_user_id = StringField()
+
+  playlist = SelectField('Select Playlist')
+  submit= SubmitField()
+
+def load_select_playlist_form_choices(host_user):
+  """Populate Seclect Playlist form with choices"""
+
+  select_form = SelectPlaylistForm() # Form for making a new playlist
+
+  choices = []
+  for playlist_choice in host_user.playlists:
+    choices.append((playlist_choice.id, playlist_choice.title))
+  select_form.playlist.choices = choices
+
+  return select_form

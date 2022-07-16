@@ -3,23 +3,32 @@
 {% block title %}{{ user.display_name }}{% endblock %}
 
 {% block content %}
-<h1>{{ user.display_name }}'s SMS playlist</h1>
-<a href="/phone">Update phone number</a>
+<h1>{{ user.display_name }}'s Text Message playlist</h1>
+<h6>Select Playlist</h6>
 <form method="POST">
-  {{ form.hidden_tag() }}
+  {{ select_form.hidden_tag() }}
 
-  {% for field in form if field.widget.input_type != 'hidden' %}
+  {% for field in select_form if field.widget.input_type != 'hidden' %}
+    {% for error in field.errors %}
+      <span class="text-danger">{{ error }}</span>
+    {% endfor %}
+    {{ field(placeholder=field.label.text, class="form-control", onchange="submit()") }}
+  {% endfor %}
+</form>
+<h6>Create New Playlist</h6>
+<form method="POST">
+  {{ create_form.hidden_tag() }}
+
+  {% for field in create_form if field.widget.input_type != 'hidden' %}
     {% for error in field.errors %}
       <span class="text-danger">{{ error }}</span>
     {% endfor %}
     {{ field(placeholder=field.label.text, class="form-control") }}
   {% endfor %}
-
-  <button class="btn btn-primary" type="submit">Add Playlist</button>
 </form>
 <table class="table">
   <thead>
-    <th scope="col">Playlist</th>
+    <th scope="col">Playlists</th>
     <th scope="col">Key</th>
     <th scope="col"></th>
   </thead>
@@ -38,6 +47,7 @@
     {% endfor %}
   </tbody>
 </table>
+<h3>{{playlist.title}}</h3>
 <table class="table">
   <thead>
     <th scope="col">Track</th>
@@ -45,7 +55,7 @@
     <th scope="col">Added By</th>
   </thead>
   <tbody>
-    {% for track in user.active_playlist.tracks %}
+    {% for track in playlist.tracks %}
     <tr scope="row">
       <!-- target="_blank" rel="noopener noreferrer" makes link open in new tab -->
       <td>{{ track.name }}</td>
