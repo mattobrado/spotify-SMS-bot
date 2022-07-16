@@ -29,9 +29,8 @@ class PhoneForm(FlaskForm):
 class CreatePlaylistForm(FlaskForm):
   """Form for creating a playlist"""
 
-  title = StringField("Playlist Title", validators=[InputRequired()])
+  title = StringField("New Playlist Title", validators=[InputRequired()])
   key = StringField("Playlist Key. Your friends will use this key to add tracks", validators=[DataRequired(), Regexp(r'^[\w.@+-]+$'), Length(min=3, max=12)])
-  submit = SubmitField()
 
   def validate_key(self, key):
     """Check that the key is not already taken"""
