@@ -30,7 +30,7 @@
   </div>
 </nav>
 <div class="container">
-  <p class="lead"> Logged in as {% block user %}{% endblock %} <small>(<a class="text-muted"href="/switch-user">switch user</a>)</small></p>
+  <p class="lead"> Logged in as {% block user %}{% endblock %} <small>(<a class="text-muted"href="/log-out">log out</a>)</small></p>
   {% for category, message in get_flashed_messages(with_categories=True) %}
   <div class="alert alert-{{ category }}">{{ message }}</div>
   {% endfor %}

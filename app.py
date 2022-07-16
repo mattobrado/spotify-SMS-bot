@@ -7,7 +7,8 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 from my_secrets import SECRET_KEY
 from models import GuestUser, Playlist, HostUser, connect_db, db
-from forms import PhoneForm, CreatePlaylistForm, SelectPlaylistForm, load_select_playlist_form_choices
+from forms import PhoneForm, CreatePlaylistForm, load_select_playlist_form_choices
+from sms import ask_for_playlist_key, invalid_playlist_key_notification
 from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_or_create_guest_user, get_or_create_host_user, get_playlist_key_from_message, get_track_ids_from_message, create_playlist, get_auth_tokens
 
 
@@ -47,15 +48,13 @@ def login():
   code = request.args['code'] # Get code returned from authorization
   auth_data = get_auth_tokens(code) # Get authorization header
   host_user = get_or_create_host_user(auth_data) # Get or create a HostUser based on their spotify profile data
-
-  flash(f"Welcome {host_user.display_name}!", 'success')
   session['host_user_id'] = host_user.id # Save host_user_id in session
 
   return redirect('/profile')
 
 
-@app.route('/switch-user')
-def switch_user():
+@app.route('/log-out')
+def log_out():
   """Remove user id and authorization header and redirect to the authorization route"""
 
   session.clear() # Remover user data from session
@@ -196,7 +195,7 @@ def receive_sms():
         db.session.add(guest_user)
         db.session.commit()
       else:
-          print('send invalid key sms')
+        invalid_playlist_key_notification(phone_number, playlist_key)
 
     if track_ids:
       if guest_user.active_playlist_id:
@@ -205,7 +204,7 @@ def receive_sms():
         if playlist:
           add_tracks_to_playlist(playlist=playlist, track_ids=track_ids, added_by=phone_number)
       else:
-        print("send sms asking for key goes here")
+        ask_for_playlist_key(phone_number)
     
 
 
