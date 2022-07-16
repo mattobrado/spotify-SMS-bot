@@ -32,7 +32,11 @@
       {% for playlist in host_user.playlists %}
       <tr scope="row">
         <!-- target="_blank" rel="noopener noreferrer" makes link open in new tab -->
-        <td><a href="/profile/{{ playlist.id }}">{{ playlist.title }}</a></td>
+        <td><a href="/profile/{{ playlist.id }}">{{ playlist.title }}</a>
+          {% if playlist.id == host_user.active_playlist_id %}
+            (active)
+          {% endif %}
+        </td>
         <td>#{{ playlist.key }}</td>
         <td>
           <form action="/profile/{{ playlist.id }}/activate" style="display:inline;" method="POST">

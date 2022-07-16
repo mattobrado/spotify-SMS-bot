@@ -14,7 +14,7 @@
         {% for error in field.errors %}
           <span class="text-danger">{{ error }}</span>
         {% endfor %}
-        {{ field(placeholder="Select Playlist", class="form-control text-muted col") }}
+        {{ field(placeholder="Select Playlist", class="form-control text-secondary col") }}
       {% endfor %}
       <button class="btn btn-primary col-2">Go</button>
     </div>
@@ -22,12 +22,19 @@
 </div>
 <div class="container has-top-margin">
   <div class="row">
-    <h1 class="col"><a href="{{playlist.url}}" target="_blank" rel="noopener noreferrer">{{playlist.title}}</a> #{{playlist.key}}</h1>
+    <h1 class="col"><a href="{{playlist.url}}" target="_blank" rel="noopener noreferrer">
+      {{playlist.title}}</a> #{{playlist.key}}
+      {% if playlist.id == host_user.active_playlist_id %}
+        (active)  
+      {% else %}
+        (inactive)
+      {% endif %}
+    </h1>
   </div>
   <div class="row">
-    <button class="btn btn-sm btn-secondary col-2" onClick="window.location.reload();">Refresh</button>
-    <form class="col-2" action="/profile/{{ playlist.id }}/activate" style="display:inline;" method="POST">
-      <button class="btn btn-sm btn-secondary col-12">Activate</button>
+    <button class="btn btn-sm btn-secondary col-3" onClick="window.location.reload();">Refresh</button>
+    <form class="col-3" action="/profile/{{ playlist.id }}/activate" style="display:inline;" method="POST">
+      <button class="btn btn-sm btn-secondary col-12">Make This My Active Playlist</button>
     </form>
   </div>
 </div>
@@ -51,7 +58,7 @@
 
   </table>
   {% if not playlist.tracks %}
-    <p class="text-center text-muted">Track data will be shown here when tracks are added to this playlist.</p>
+    <p class="text-center text-muted">Song data will be shown here when songs are added to this playlist.</p>
   {% endif %}
 </div>
 

@@ -10,25 +10,26 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/16.0.4/css/intlTelInput.css">
   {% endblock %}
   <link rel="stylesheet" href="../static/styles.css">
-  
+  <link rel="stylesheet" href="../static/bootstrap.scss">
   <title>
     Spotify Text Playlists&ndash; {% block title %}{% endblock %}
   </title>
 </head>
 <body>
-<nav class="navbar navbar-expand">
+<nav class="navbar navbar-expand-lg ">
   <div class="container">
-    <div class="navbar-header">
-      <a href="/" class="navbar-brand">
-        <span>Spotify Text Message Playlists</span>
-      </a>
-    </div>
-    <ul class="nav navbar-nav narbar-right">
-      <li><a href="/playlists">Create Another Playlist</a></li>
-      <li><a href="/phone">Update Phone Number</a></li>
+    <a class="navbar-brand" href="/">Spotify Text Message Playlists</a>
+    <ul class="navbar-nav flex-row flex-wrap ms-md-auto justify-content-end">
+      <li class="nav-item">
+        <a class="nav-link" href="/playlists">My Playlists</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/phone">Update Phone Number</a>
+      </li>
     </ul>
   </div>
 </nav>
+
 <div class="container">
   <p class="lead"> Logged in as {% block user %}{% endblock %} <small>(<a class="text-muted"href="/log-out">log out</a>)</small></p>
   {% for category, message in get_flashed_messages(with_categories=True) %}
@@ -41,6 +42,7 @@
 </div>
 {% block scripts %}
 {{ bootstrap.load_js() }}
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/16.0.4/js/intlTelInput.min.js"></script>
 {% endblock %}
 </body>
