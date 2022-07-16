@@ -1,6 +1,6 @@
 """Seed file to make sample data for spotify_group_chat db"""
 
-from models import User, Playlist, db
+from models import HostUser, Playlist, db
 from app import app
 
 # Create all tables
@@ -18,10 +18,10 @@ road_trip = Playlist(title="Road Trip", owner_id=1245079776,url="fakeurl.com")
 # db.session.commit()
 
 # Add users
-bobeode = User(display_name="bobeode",email="bobeode@gmail.com",url="fakeurl.com")
-wolfgang = User(display_name="wolfgang",email="wolfgang@gmail.com",url="fakeurl.com")
-yikem = User(display_name="yikem",email="yikem@gmail.com",url="fakeurl.com")
-djobrad = User(display_name="djobrad",email="mcobradovic@yahoo.com",url="https://open.spotify.com/user/1245079776", id=1245079776)
+bobeode = HostUser(display_name="bobeode",email="bobeode@gmail.com",url="fakeurl.com")
+wolfgang = HostUser(display_name="wolfgang",email="wolfgang@gmail.com",url="fakeurl.com")
+yikem = HostUser(display_name="yikem",email="yikem@gmail.com",url="fakeurl.com")
+djobrad = HostUser(display_name="djobrad",email="mcobradovic@yahoo.com",url="https://open.spotify.com/user/1245079776", id=1245079776)
 
 db.session.add(bobeode)
 db.session.add(wolfgang)

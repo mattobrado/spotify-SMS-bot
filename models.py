@@ -1,7 +1,6 @@
 """SQLAlchemy models"""
 
 from flask_sqlalchemy import SQLAlchemy
-import phonenumbers
 
 db = SQLAlchemy() # Create database object
 
@@ -11,54 +10,43 @@ def connect_db(app):
   db.app = app # Connect database to Flask object
   db.init_app(app) # Initialize database
 
-
-class User(db.Model):
-  """ A host user is associated with a spotify account
-  The playlist is stored on their account
-  Model to hold spotify user data"""
-
-  __tablename__ = 'users'
+class GuestUser(db.Model):
+  """Guest user"""
+  
+  __tablename__ = 'guest_users'
 
   id = db.Column(db.Integer, primary_key=True)
+  phone_number = db.Column(db.Text, unique=True)
+  active_playlist_id = db.Column(db.Text, db.ForeignKey('playlists.id'))
+  user_type = db.Column(db.String(32), nullable=False)
+
+  __mapper_args__ = {
+    "polymorphic_identity": "guest_users",
+    "polymorphic_on": user_type,
+  }
+  
+class HostUser(GuestUser):
+  """ A host user is associated with a spotify account
+  Playlists are stored on their account"""
+
+  __tablename__ = 'host_users'
+
+  id = db.Column(db.Integer, db.ForeignKey('guest_users.id'), primary_key=True)
   display_name = db.Column(db.Text, nullable=False)
   email = db.Column(db.Text, nullable=False, unique=True)
   url = db.Column(db.Text, nullable=False)
   access_token = db.Column(db.Text)
   refresh_token = db.Column(db.Text)
 
-  phone_number = db.Column(db.Text, db.ForeignKey('phone_numbers.number'))
-
   playlists = db.relationship('Playlist', backref='owner', cascade='all, delete-orphan')
-
-  # @property
-  # def playlists(self):
-  #   """Get all playlists with owner_id = this user's id
-    
-  #   Needed to write this out instead on using a db.ForeignKey() argument in 
-  #   playlists.owner_id because we're already using a db.ForeignKey() to link the 
-  #   user's active playlist to a the Playlist table"""
-  #   found_playlists = Playlist.query.filter_by(owner_id=self.id).all()
-  #   found_playlists.reverse() # Return in reverse order so more recent playlists are first
-  #   return found_playlists
 
   @property
   def auth_header(self):
-    """Create the authorization header from the acccess token
-    
-    Return as a python dictionary"""
+    """Create the authorization header from the acccess token. Return as a python dictionary"""
 
     return {'Authorization': f'Bearer {self.access_token}'}
 
-
-class PhoneNumber(db.Model):
-  """Phone Number
-  
-  could belong to a user or not"""
-  
-  __tablename__ = 'phone_numbers'
-
-  number = db.Column(db.Text, primary_key=True)
-  active_playlist = db.Column(db.Text, db.ForeignKey('playlists.id'))
+  __mapper_args__ = {"polymorphic_identity": "host_users"}
 
 
 class Playlist(db.Model):
@@ -71,22 +59,24 @@ class Playlist(db.Model):
   key = db.Column(db.Text, unique=True, nullable=False)
   url = db.Column(db.Text, nullable=False)
   endpoint = db.Column(db.Text, nullable=False)
-  owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+  owner_id = db.Column(db.Integer, db.ForeignKey('host_users.id'), nullable=False)
+  active_users = db.relationship("GuestUser", backref="active_playlist", cascade="all, delete-orphan")
 
 
-class Track(db.Model):
-  """Track"""
+# class Track(db.Model):
+#   """Track"""
 
-  __tablename__ = 'tracks'
+#   __tablename__ = 'tracks'
 
-  id = db.Column(db.Text, primary_key=True)
-  title = db.Column(db.Text, nullable=False)
-  artist = db.Column(db.Text, nullable=False)
+#   id = db.Column(db.Text, primary_key=True)
+#   title = db.Column(db.Text, nullable=False)
+#   artist = db.Column(db.Text, nullable=False)
 
 
-class TrackInPlaylist(db.Model):
-  """A track in a playlist that was added by someone with a text message"""
+# class TrackInPlaylist(db.Model):
+#   """A track in a playlist that was added by someone with a text message"""
 
-  playlist_id = db.Column(db.Text, db.ForeignKey('playlists.id'), primary_key=True)
-  track_id = db.Column(db.Text, db.ForeignKey('tracks.id'), primary_key=True)
-  added_by = db.Column(db.Text, unique=True)
+#   playlist_id = db.Column(db.Text, db.ForeignKey('playlists.id'), primary_key=True)
+#   track_id = db.Column(db.Text, db.ForeignKey('tracks.id'), primary_key=True)
+#   added_by = db.Column(db.Text, unique=True)

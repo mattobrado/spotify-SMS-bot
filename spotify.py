@@ -3,8 +3,8 @@ import requests
 import re
 from urllib.parse import urlencode
 
-from my_secrets import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_HEADER 
-from models import User, Playlist, db
+from my_secrets import MY_TWILIO_NUMBER, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_HEADER 
+from models import HostUser, Playlist, db
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
 SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'
@@ -87,17 +87,15 @@ def make_authorized_api_call(user, endpoint, data=None, params=None):
 
 
 # -------------------------- OTHER REQUESTS ---------------------------
-def get_user_data(auth_data):
-  """Make a request to the spotify API and return a User object"""
+def get_or_create_host_user(auth_data):
+  """Make a request to the spotify API and return a HostUser object"""
 
   access_token = auth_data["access_token"]
   refresh_token = auth_data["refresh_token"]
 
   auth_header = {"Authorization": f"Bearer {access_token}"}
 
-  response = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header)
-
-  profile_data = response.json()
+  profile_data = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header).json() # .json() to unpack
 
   # Get data from response
   display_name = profile_data['display_name']
@@ -105,50 +103,50 @@ def get_user_data(auth_data):
   url = profile_data['external_urls']['spotify']
   id = profile_data['id'] # Use same id as spotify
 
-  user = User.query.filter_by(email=email).first() # Check if the User is already in the Database using email address
+  host_user = HostUser.query.filter_by(email=email).first() # Check if the HostUser is already in the Database using email address
 
   # If the user is not in the database
-  if not user:
-    # Create User object
-    user = User(display_name=display_name, email=email, url=url, id=id, access_token=access_token, refresh_token=refresh_token)
-    db.session.add(user) # Add User to Database
+  if not host_user:
+    # Create HostUser object
+    host_user = HostUser(display_name=display_name, email=email, url=url, id=id, access_token=access_token, refresh_token=refresh_token)
+    db.session.add(host_user) # Add HostUser to Database
     db.session.commit() 
-    # flash('New Account Created!', 'success')
 
-  # If the User already exits update the access token and refresh token 
+  # If the HostUser already exits update the access token and refresh token 
   else:
-    user.access_token = access_token # Update access_token
-    user.refresh_token = refresh_token # Update access_token
-    db.session.add(user) # Update User
+    host_user.access_token = access_token # Update access_token
+    host_user.refresh_token = refresh_token # Update access_token
+    db.session.add(host_user) # Update HostUser
     db.session.commit() 
 
-  return  user # return the User object
+  return host_user # return the HostUser object
 
 
-def create_playlist(user, title):
+def create_playlist(host_user, title, key):
   """Create a playlist on the users account"""
 
   # Data for created playlist
   data = json.dumps({
     "name": title,
-    "description": "Spotify SMS Playlist",
+    "description": f"Text #{key} to {MY_TWILIO_NUMBER} to start adding songs via text",
     "public": False, # Collaborative playlists cannot be public
     "collaborative": True 
   })
 
-  create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{user.id}/playlists"
+  create_playlist_endpoint = SPOTIFY_API_URL + f"/users/{host_user.id}/playlists"
 
-  playlist_data = make_authorized_api_call(user=user, endpoint=create_playlist_endpoint, data=data)
+  playlist_data = make_authorized_api_call(user=host_user, endpoint=create_playlist_endpoint, data=data)
 
   id = playlist_data['id'] # Use the same id as spotify
   url = playlist_data['external_urls']['spotify'] # Used for links in user interface
   playlist_endpoint = playlist_data['href'] # Used for adding tracks
   owner_id = playlist_data['owner']['id'] # Use the same owner id as spotify
 
-  new_playlist = Playlist(id=id, title=title, url=url, endpoint=playlist_endpoint, owner_id=owner_id)
+  new_playlist = Playlist(id=id, title=title, key=key, url=url, endpoint=playlist_endpoint, owner_id=owner_id)
   db.session.add(new_playlist)
-  user.active_playlist_id = id
-  db.session.add(user)
+
+  host_user.active_playlist = new_playlist
+  db.session.add(host_user)
   db.session.commit() # commit to database
   
   return new_playlist
@@ -169,10 +167,21 @@ def get_track_ids_from_message(message):
   return track_ids
 
 
+def get_playlist_key_from_message(message):
+  """Returns the first playlist key in a message"""
+
+  keys = re.findall('#+[^? ]*', message)  # find all words starting with "#"
+
+  # if keys were found
+  if keys:
+    return keys[0].lower() # return the first key in lowercase
+  else:
+    return None
+
+
 def add_tracks_to_playlist(playlist, track_ids):
   """Make a post request to add the track_ids to the Spotify playlist"""
 
-  auth_header = playlist.owner.auth_header # get auth_header of the playlist's owner
   add_tracks_endpoint = playlist.endpoint + "/tracks"
   
   # Pass the track_ids to spotify in the query string with the key "uris"
@@ -184,3 +193,9 @@ def add_tracks_to_playlist(playlist, track_ids):
 
   # Make the post request to add the tracks to the playlist
   make_authorized_api_call(user=playlist.owner, endpoint=add_tracks_endpoint, params={"uris": uris_string})
+
+def get_track(user, track_id):
+  """Make an API call to get rack data"""
+
+  get_track_endpoint = SPOTIFY_API_URL + '/tracks' + track_id
+  return make_authorized_api_call(user=user, endpoint=get_track_endpoint)

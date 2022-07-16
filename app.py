@@ -6,9 +6,9 @@ from flask_bootstrap import Bootstrap5
 from twilio.twiml.messaging_response import MessagingResponse
 
 from my_secrets import SECRET_KEY
-from models import PhoneNumber, Playlist, connect_db, db, User
+from models import GuestUser, Playlist, HostUser, connect_db, db
 from forms import PhoneForm, PlaylistForm
-from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_track_ids_from_message, create_playlist, get_auth_tokens, get_user_data, refresh_access_token
+from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_or_create_host_user, get_playlist_key_from_message, get_track_ids_from_message, create_playlist, get_auth_tokens
 
 
 app = Flask(__name__) # Create Flask object
@@ -42,14 +42,14 @@ def get_authorization():
 
 @app.route('/login')
 def login():
-  """Use code from spotify redirect to get authorizion and retrive or ceate a User"""
+  """Use code from spotify redirect to get authorizion and retrive or ceate a HostUser"""
 
   code = request.args['code'] # Get code returned from authorization
   auth_data = get_auth_tokens(code) # Get authorization header
-  user = get_user_data(auth_data) # Get a create a User based on their spotify profile data
+  host_user = get_or_create_host_user(auth_data) # Get or create a HostUser based on their spotify profile data
 
-  flash(f"Welcome {user.display_name}!", 'success')
-  session['user_id'] = user.id # Save user_id in session
+  flash(f"Welcome {host_user.display_name}!", 'success')
+  session['host_user_id'] = host_user.id # Save host_user_id in session
 
   return redirect('/profile')
 
@@ -58,7 +58,7 @@ def login():
 def switch_user():
   """Remove user id and authorization header and redirect to the authorization route"""
 
-  session.clear() # Remover user_id from session
+  session.clear() # Remover user data from session
   return redirect('/authorize')
 
 
@@ -69,15 +69,15 @@ def show_profile():
   """Show a user's profile and a list of their SMS playlists"""
   
   # Prevent users from jumping ahead to /profile without first authorizing
-  if 'user_id' not in session:
+  if 'host_user_id' not in session:
     flash('Please log in', 'warning')
     return redirect('/authorize')
   
-  user = User.query.get_or_404(session['user_id']) # Get user using user_id in session
-  
+  host_user = HostUser.query.get_or_404(session['host_user_id']) # Get user using user_id in session
+
   # If the user soes not have a phone number, rediect the the phone number form
   
-  if not user.phone_number:
+  if not host_user.phone_number:
     flash('Enter your phone number to create a playlist', 'warning')
     return redirect('/phone')
 
@@ -86,30 +86,36 @@ def show_profile():
   # When the form is submitted
   if form.validate_on_submit():
     title = form.title.data # Get title from form
-    create_playlist(user=user, title=title) # Create the playlist
+    key = form.key.data.lower()
+    create_playlist(host_user=host_user, title=title, key=key) # Create the playlist
     flash('Playlist Created', 'success')
     return redirect('/profile')
 
-  return render_template('profile.html', user=user, form=form)
+  return render_template('profile.html', user=host_user, form=form)
 
 
 @app.route('/phone', methods = ['GET', 'POST'])
 def get_phone_number():
   """Get a user's phone number using the PhoneForm"""
 
-  user = User.query.get_or_404(session['user_id']) # get User
+  host_user = HostUser.query.get_or_404(session['host_user_id']) # get HostUser
   form = PhoneForm() # Form for getting phone numbers
 
   if form.validate_on_submit():
-    new_phone_number = PhoneNumber(number=form.phone.data) # Save the user's phone number
-    db.session.add(new_phone_number)
-    user.phone_number = form.phone.data
-    db.session.add(user)
+    guest_user = GuestUser.query.filter_by(phone_number=form.phone.data).first()
+    # if there is a guest user with that phone number
+    if guest_user:
+      host_user.active_playlist = guest_user.active_playlist
+      db.session.delete(guest_user) # delete guest user to replace them with host user
+      db.session.commit()
+
+    host_user.phone_number = form.phone.data
+    db.session.add(host_user)
     db.session.commit()
     flash('Phone Number Updated', 'success')
     return redirect('/profile')
   
-  return render_template('phone.html', user=user, form=form)
+  return render_template('phone.html', user=host_user, form=form)
 
 
 @app.route('/profile/<int:playlist_id>/delete', methods=['POST'])
@@ -123,7 +129,7 @@ def delete_playlist(playlist_id):
     flash('Playlist Deleted', 'warning')
     return redirect('/profile')
   
-  # User is not authorized to delete the playlist
+  # HostUser is not authorized to delete the playlist
   else:
     flash('You cannot delete that playlist')
 
@@ -135,17 +141,40 @@ def receive_sms():
   """Route for Twilio to pass in recieved messages"""
 
   phone_number = request.form['From']
-  body = request.form['Body']
+  message = request.form['Body']
   
-  track_ids = get_track_ids_from_message(body) # Scan message for track_ids
+  track_ids = get_track_ids_from_message(message) # Scan message for track_ids
+  playlist_key = get_playlist_key_from_message(message) # Scan message for playlist keys
 
-  # If track ids were found in the message body
-  if len(track_ids) > 0:
-    user = User.query.filter_by(phone_number=phone_number).first() # Get the user based on the phone_number
-    playlist = Playlist.query.filter_by(owner_id=user.id).first() # Get user's first playlist
-    # If playlist exists
-    if playlist:
-      add_tracks_to_playlist(playlist=playlist, track_ids=track_ids)  
+  print("********************************************************")
+  print(track_ids)
+  print(playlist_key )
+
+  if playlist_key or track_ids:
+    guest_user = GuestUser.query.filter_by(phone_number=phone_number).first
+
+    if playlist_key:
+      playlist = Playlist.query.filter_by(key=playlist_key).first() # Get phone number's first playlist
+      # If playlist exists
+      if playlist:
+        guest_user.active_playlist = playlist.id
+
+    if track_ids:
+      playlist = Playlist.query.filter_by(id=guest_user.active_playlist).first() # Get phone number's first playlist
+      # If playlist exists
+      if playlist:
+        add_tracks_to_playlist(playlist=playlist, track_ids=track_ids)  
+
+
+
+  # # If track ids were found in the message body
+  # if len(track_ids) > 0:
+  #   phone_number = GuestUser.query.filter_by(number=phone_number).first() # Get the user based on the phone_number
+  #   playlist = Playlist.query.filter_by(owner_id=user.id).first() # Get user's first playlist
+    
+    
+    
+
 
   resp = MessagingResponse ()
   return str(resp)
