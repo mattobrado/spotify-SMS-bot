@@ -1,11 +1,21 @@
+"""Spotify API Requests"""
+
+import os
 import json
 import requests
 import re
 from urllib.parse import urlencode
+import base64
 
-from my_secrets import MY_TWILIO_NUMBER, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_HEADER 
 from models import GuestUser, HostUser, Playlist, PlaylistTrack, Track, db
 from sms import key_instructions_notification, playlist_key_success_notification
+
+MY_TWILIO_NUMBER = os.environ.get('MY_TWILIO_NUMBER')
+SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID')
+SPOTIFY_CLIENT_SECRET = os.environ.get('SPOTIFY_CLIENT_SECRET')
+
+CLIENT_INFO_BASE64_ENCODED = base64.b64encode((f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}").encode()) 
+SPOTIFY_CLIENT_HEADER = {"Authorization": f"Basic {CLIENT_INFO_BASE64_ENCODED.decode()}"}
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
 SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'

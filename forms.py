@@ -1,11 +1,8 @@
 """WTForms"""
 
-from selectors import SelectSelector
-from click import secho
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import InputRequired, ValidationError, DataRequired, Regexp, Length
-from wtforms_sqlalchemy.fields import QuerySelectField
 import phonenumbers
 
 from models import Playlist

@@ -1,12 +1,13 @@
 """Functions to send messages to users"""
 
+import os
 from twilio.rest import Client
 
-from my_secrets import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, MY_TWILIO_NUMBER
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+MY_TWILIO_NUMBER = os.environ.get('MY_TWILIO_NUMBER')
 
-account_sid = TWILIO_ACCOUNT_SID
-auth_token = TWILIO_AUTH_TOKEN
-client = Client(account_sid, auth_token)
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 def ask_for_playlist_key(phone_number):
   """Send a message to a user asking for a playlist #key"""
@@ -43,7 +44,7 @@ def key_instructions_notification(phone_number, playlist):
 
   client.messages \
     .create(
-      body=f"Tell your friends to text #{playlist.key} to {MY_TWILIO_NUMBER} and songs recieved from them will be added to your playlist:{playlist.title}",
+      body=f"Tell your friends to text #{playlist.key} to {MY_TWILIO_NUMBER} and songs recieved from them will be added to your playlist",
       from_= MY_TWILIO_NUMBER,
       to= phone_number
     )
