@@ -16,7 +16,7 @@ from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_or_create_gue
 app = Flask(__name__) # Create Flask object
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL'.replace("://", "ql://", 1),'postgresql:///spotify_sms_playlist').replace("://", "ql://", 1) # PSQL database
-print(app.config['SQLALCHEMY_DATABASE_URI'])
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # Don't track modifications
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'calebshouse') # SECRET_KEY for debug toolbar
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False # Disable intercepting redirects
