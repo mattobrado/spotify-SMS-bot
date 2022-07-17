@@ -25,7 +25,6 @@ SPOTIFY_TOKEN_URL = SPOTIFY_AUTH_BASE_URL + '/api/token'
 SPOTIFY_API_URL = 'https://api.spotify.com/v1'
 USER_PROFILE_ENDPOINT = SPOTIFY_API_URL + '/me'
 
-REDIRECT_URI = 'http://localhost:5000/login' 
 SCOPE = 'user-read-email playlist-modify-public playlist-modify-private' # Scope of authorization
 
 # ------------------------- REQUEST AUTHORIZATION TO ACCESS DATA ---------------------------
