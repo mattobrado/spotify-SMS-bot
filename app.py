@@ -6,7 +6,7 @@ from flask_bootstrap import Bootstrap5
 from twilio.twiml.messaging_response import MessagingResponse
 import os
 
-from my_secrets import SECRET_KEY
+# from my_secrets import SECRET_KEY
 from models import GuestUser, HostUser, Playlist, connect_db, db
 from forms import PhoneForm, CreatePlaylistForm, load_select_playlist_form_choices
 from sms import ask_for_playlist_key, invalid_playlist_key_notification, playlist_key_success_notification
@@ -17,7 +17,7 @@ app = Flask(__name__) # Create Flask object
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///spotify_sms_playlist' # PSQL database
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # Don't track modifications
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', SECRET_KEY) # SECRET_KEY for debug toolbar
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'calebshouse') # SECRET_KEY for debug toolbar
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False # Disable intercepting redirects
 
 toolbar = DebugToolbarExtension(app) # Create debug toolbar object
