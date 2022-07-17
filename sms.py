@@ -37,3 +37,13 @@ def playlist_key_success_notification(phone_number, playlist):
       from_= MY_TWILIO_NUMBER,
       to= phone_number
     )
+
+def key_instructions_notification(phone_number, playlist):
+  """Send a message to a user telling them how to add other people"""
+
+  client.messages \
+    .create(
+      body=f"Tell your friends to text #{playlist.key} to {MY_TWILIO_NUMBER} and songs recieved from them will be added to your playlist:{playlist.title}",
+      from_= MY_TWILIO_NUMBER,
+      to= phone_number
+    )

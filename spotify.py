@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 from my_secrets import MY_TWILIO_NUMBER, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_HEADER 
 from models import GuestUser, HostUser, Playlist, PlaylistTrack, Track, db
+from sms import key_instructions_notification, playlist_key_success_notification
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
 SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'
@@ -171,7 +172,10 @@ def create_playlist(host_user, title, key):
   host_user.active_playlist_id = new_playlist.id
   db.session.add(host_user)
   db.session.commit() # commit to database
-  
+
+  playlist_key_success_notification(phone_number=host_user.phone_number, playlist=new_playlist) # Send a message to the user
+  key_instructions_notification(phone_number=host_user.phone_number, playlist=new_playlist)
+
   return new_playlist
 
 

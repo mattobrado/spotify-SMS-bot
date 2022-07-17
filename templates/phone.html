@@ -2,6 +2,7 @@
 {% from 'bootstrap/form.html' import render_form %}
 
 {% block title %}{{ user.display_name }}{% endblock %}
+{% block user %}{{ user.display_name }}{% endblock %}
 
 {% block content %}
 <h1>Hello {{ user.display_name }}</h1>
