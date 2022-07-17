@@ -109,24 +109,25 @@ def make_authorized_api_call(host_user, endpoint, method='POST', data=None, para
 
 def get_or_create_host_user(auth_data):
   """Make a request to the spotify API and return a HostUser object"""
-
+  print('6')
   access_token = auth_data["access_token"]
   refresh_token = auth_data["refresh_token"]
-
+  print('7')
   auth_header = {"Authorization": f"Bearer {access_token}"}
-
+  print('8')
   profile_data = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header).json() # .json() to unpack
-
+  print('9')
   # Get data from response
   display_name = profile_data['display_name']
   email = profile_data['email']
   url = profile_data['external_urls']['spotify']
   id = profile_data['id'] # Use same id as spotify
-
+  print('10')
   host_user = HostUser.query.filter_by(email=email).first() # Check if the HostUser is already in the Database using email address
-
+  print('11')
   # If the user is not in the database
   if not host_user:
+    print('12a')
     # Create HostUser object
     host_user = HostUser(display_name=display_name, email=email, url=url, id=id, access_token=access_token, refresh_token=refresh_token)
     db.session.add(host_user) # Add HostUser to Database
@@ -134,6 +135,7 @@ def get_or_create_host_user(auth_data):
 
   # If the HostUser already exits update the access token and refresh token 
   else:
+    print('12b')
     host_user.access_token = access_token # Update access_token
     host_user.refresh_token = refresh_token # Update access_token
     db.session.add(host_user) # Update HostUser

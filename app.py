@@ -52,6 +52,7 @@ def login():
   print('2')
   auth_data = get_auth_tokens(code) # Get authorization header
   print('3')
+  print(f"auth data: {auth_data}")
   host_user = get_or_create_host_user(auth_data) # Get or create a HostUser based on their spotify profile data
   print('4')
   session['host_user_id'] = host_user.id # Save host_user_id in session
