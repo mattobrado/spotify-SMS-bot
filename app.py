@@ -47,12 +47,15 @@ def get_authorization():
 @app.route('/login')
 def login():
   """Use code from spotify redirect to get authorizion and retrive or ceate a HostUser"""
-
+  print('1')
   code = request.args['code'] # Get code returned from authorization
+  print('2')
   auth_data = get_auth_tokens(code) # Get authorization header
+  print('3')
   host_user = get_or_create_host_user(auth_data) # Get or create a HostUser based on their spotify profile data
+  print('4')
   session['host_user_id'] = host_user.id # Save host_user_id in session
-
+  print('5')
   return redirect('/profile')
 
 
