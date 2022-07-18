@@ -19,25 +19,18 @@
 <nav class="navbar navbar-expand-lg ">
   <div class="container">
     <a class="navbar-brand" href="/profile">Spotify Text Message Playlists</a>
-    <ul class="navbar-nav flex-row flex-wrap ms-md-auto justify-content-end">
-      <li class="nav-item">
-        <a class="nav-link" href="/playlists">My Playlists</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/phone">Update Phone Number</a>
-      </li>
-    </ul>
+    {% block navbar_items %}
+    {% endblock %}
   </div>
 </nav>
-
+{% block logged_in_user %}
+{% endblock %}
 <div class="container">
-  <p class="lead"> Logged in as {% block user %}{% endblock %} <small>(<a class="text-muted"href="/log-out">log out</a>)</small></p>
   {% for category, message in get_flashed_messages(with_categories=True) %}
   <div class="alert alert-{{ category }}">{{ message }}</div>
   {% endfor %}
-
   {% block content %}
-  <!-- page content goes here -->
+    <!-- page content goes here -->
   {% endblock %}
 </div>
 {% block scripts %}

@@ -8,14 +8,14 @@ import os
 
 # from my_secrets import SECRET_KEY
 from models import GuestUser, HostUser, Playlist, connect_db, db
-from forms import PhoneForm, CreatePlaylistForm, load_select_playlist_form_choices
-from sms import ask_for_playlist_key, invalid_playlist_key_notification, playlist_key_success_notification
+from forms import EmailForm, PhoneForm, CreatePlaylistForm, load_select_playlist_form_choices
+from sms import ask_for_playlist_key, invalid_playlist_key_notification, playlist_key_success_notification, send_request_access_message
 from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_or_create_guest_user, get_or_create_host_user, get_playlist_key_from_message, get_track_ids_from_message, create_playlist, get_auth_tokens
 
 
 app = Flask(__name__) # Create Flask object
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL'.replace("://", "ql://", 1),'postgresql:///spotify_sms_playlist').replace("://", "ql://", 1) # PSQL database
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL','postgres:///spotify_sms_playlist').replace("://", "ql://", 1) # PSQL database
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # Don't track modifications
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'calebshouse') # SECRET_KEY for debug toolbar
@@ -35,6 +35,23 @@ def root():
 
   return redirect('/authorize')
 
+@app.route('/sign-up', methods=['GET', 'POST'])
+def sign_up():
+  """"""
+
+  form = EmailForm()
+
+  if form.validate_on_submit():
+    send_request_access_message(form.email.data)
+    return redirect('/thanks')
+  return render_template('request_access/email.html',form=form)
+
+@app.route('/thanks', methods=['GET', 'POST'])
+def thanks():
+  """"""
+
+  return render_template('request_access/thanks.html')
+
 # -------------------------- AUTHORIZATION/LOGIN ---------------------------
 
 @app.route('/authorize', methods=['GET', 'POST'])
@@ -47,16 +64,16 @@ def get_authorization():
 @app.route('/login')
 def login():
   """Use code from spotify redirect to get authorizion and retrive or ceate a HostUser"""
-  print('1')
+
   code = request.args['code'] # Get code returned from authorization
-  print('2')
   auth_data = get_auth_tokens(code) # Get authorization header
-  print('3')
-  print(f"auth data: {auth_data}")
   host_user = get_or_create_host_user(auth_data) # Get or create a HostUser based on their spotify profile data
-  print('4')
+  
+  # If we couldn't get user data we need to manulally
+  if not host_user:
+    return redirect('/sign-up')
+  
   session['host_user_id'] = host_user.id # Save host_user_id in session
-  print('5')
   return redirect('/profile')
 
 
@@ -82,7 +99,6 @@ def redirect_to_active_playlist():
   
   # If the user soes not have a phone number, rediect the the phone number form
   if not host_user.phone_number:
-    flash('Enter your phone number to create a playlist', 'warning')
     return redirect('/phone')
 
   playlist_id = host_user.active_playlist_id # Get the users active playlist
@@ -258,9 +274,7 @@ def get_host_user_from_session():
   """Prevent users from jumping ahead to /profile without first authorizing"""
 
   if 'host_user_id' not in session:
-    flash('Please log in', 'warning')
     return None
-
   else:
     return HostUser.query.get_or_404(session['host_user_id']) # Get host_user using host_user_id in session
 

@@ -24,7 +24,7 @@ SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'
 SPOTIFY_TOKEN_URL = SPOTIFY_AUTH_BASE_URL + '/api/token'
 
 SPOTIFY_API_URL = 'https://api.spotify.com/v1'
-USER_PROFILE_ENDPOINT = SPOTIFY_API_URL + '/me'
+
 
 SCOPE = 'user-read-email playlist-modify-public playlist-modify-private' # Scope of authorization
 
@@ -109,39 +109,48 @@ def make_authorized_api_call(host_user, endpoint, method='POST', data=None, para
 
 def get_or_create_host_user(auth_data):
   """Make a request to the spotify API and return a HostUser object"""
-  print('6')
+
   access_token = auth_data["access_token"]
   refresh_token = auth_data["refresh_token"]
-  print('7')
   auth_header = {"Authorization": f"Bearer {access_token}"}
-  print('8')
-  profile_data = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header).json() # .json() to unpack
-  print('9')
-  # Get data from response
-  display_name = profile_data['display_name']
-  email = profile_data['email']
-  url = profile_data['external_urls']['spotify']
-  id = profile_data['id'] # Use same id as spotify
-  print('10')
-  host_user = HostUser.query.filter_by(email=email).first() # Check if the HostUser is already in the Database using email address
-  print('11')
-  # If the user is not in the database
-  if not host_user:
-    print('12a')
-    # Create HostUser object
-    host_user = HostUser(display_name=display_name, email=email, url=url, id=id, access_token=access_token, refresh_token=refresh_token)
-    db.session.add(host_user) # Add HostUser to Database
-    db.session.commit() 
 
-  # If the HostUser already exits update the access token and refresh token 
-  else:
-    print('12b')
-    host_user.access_token = access_token # Update access_token
-    host_user.refresh_token = refresh_token # Update access_token
-    db.session.add(host_user) # Update HostUser
-    db.session.commit() 
 
-  return host_user # return the HostUser object
+  USER_PROFILE_ENDPOINT = SPOTIFY_API_URL + '/me'
+  profile_response = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header) # .json() to unpack
+
+  print(profile_response)
+
+  # If we got 403 "forbidden" (if the spotify account is not added to our app, required because the spotify app is in development mode) 
+  if profile_response.status_code == 403: 
+    return None # Don't return a host_user.
+  
+  # If request was successul (200)
+  elif profile_response.status_code == 200: 
+    profile_data = profile_response.json()
+
+    # Get data from response
+    display_name = profile_data['display_name']
+    email = profile_data['email']
+    url = profile_data['external_urls']['spotify']
+    id = profile_data['id'] # Use same id as spotify
+
+    host_user = HostUser.query.filter_by(email=email).first() # Check if the HostUser is already in the Database using email address
+
+    # If the user is not in the database
+    if not host_user:
+      # Create HostUser object
+      host_user = HostUser(display_name=display_name, email=email, url=url, id=id, access_token=access_token, refresh_token=refresh_token)
+      db.session.add(host_user) # Add HostUser to Database
+      db.session.commit() 
+
+    # If the HostUser already exits update the access token and refresh token 
+    else:
+      host_user.access_token = access_token # Update access_token
+      host_user.refresh_token = refresh_token # Update access_token
+      db.session.add(host_user) # Update HostUser
+      db.session.commit() 
+
+    return host_user # return the HostUser object
 
 
 def get_or_create_guest_user(phone_number):

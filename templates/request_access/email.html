@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form %}
+
+{% block content %}
+<h6>In compliance with the Spotify Developer Policy, users must be explicitly added before their account data can be accessed.</h6>
+<p>If you wish to continue, please provide the email address associated with your Spotify account</p>
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <div class="container"></div>
+    <div class="row"> 
+      {% for field in form if field.widget.input_type != 'hidden' %}
+        {% for error in field.errors %}
+          <span class="text-danger">{{ error }}</span>
+        {% endfor %}
+        {{ field(placeholder=field.label.text, class="form-control col-1 w-50") }}
+      {% endfor %}
+      <button class="btn btn-primary col-2">Add Me</button>
+    </div> 
+  </div> 
+</form>
+
+{% endblock %}

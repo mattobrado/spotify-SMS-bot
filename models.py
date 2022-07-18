@@ -15,7 +15,7 @@ class GuestUser(db.Model):
   
   __tablename__ = 'guest_users'
 
-  id = db.Column(db.Integer, primary_key=True)
+  id = db.Column(db.Text, primary_key=True)
   phone_number = db.Column(db.Text, unique=True)
   active_playlist_id = db.Column(db.Text)
   user_type = db.Column(db.String(32), nullable=False)
@@ -35,7 +35,7 @@ class HostUser(GuestUser):
 
   __tablename__ = 'host_users'
 
-  id = db.Column(db.Integer, db.ForeignKey('guest_users.id'), primary_key=True)
+  id = db.Column(db.Text, db.ForeignKey('guest_users.id'), primary_key=True)
   display_name = db.Column(db.Text, nullable=False)
   email = db.Column(db.Text, nullable=False, unique=True)
   url = db.Column(db.Text, nullable=False)
@@ -64,7 +64,7 @@ class Playlist(db.Model):
   url = db.Column(db.Text, nullable=False)
   endpoint = db.Column(db.Text, nullable=False)
 
-  owner_id = db.Column(db.Integer, db.ForeignKey('host_users.id'), nullable=False)
+  owner_id = db.Column(db.Text, db.ForeignKey('host_users.id'), nullable=False)
   
   tracks = db.relationship(
     'Track',

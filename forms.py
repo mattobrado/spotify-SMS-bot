@@ -1,12 +1,17 @@
 """WTForms"""
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField
-from wtforms.validators import InputRequired, ValidationError, DataRequired, Regexp, Length
+from wtforms import StringField, SubmitField, SelectField, EmailField
+from wtforms.validators import InputRequired, ValidationError, DataRequired, Regexp, Length, Email
 import phonenumbers
+import email_validator
 
 from models import Playlist
 
+
+class EmailForm(FlaskForm):
+  """Form to get email"""
+  email = EmailField('Spotify Email Address', validators=[DataRequired(),Email()])
 
 class PhoneForm(FlaskForm):
   """PhoneForm was provided by Twilio"""
@@ -27,7 +32,7 @@ class CreatePlaylistForm(FlaskForm):
   """Form for creating a playlist"""
 
   title = StringField("New Playlist Title", validators=[InputRequired()])
-  key = StringField("Playlist Password. Your friends will use this to add tracks", validators=[DataRequired(), Regexp(r'^[\w.@+-]+$'), Length(min=3, max=12)])
+  key = StringField("Playlist Key. Your friends will use this to add tracks", validators=[DataRequired(), Regexp(r'^[\w.@+-]+$',message='Key cannot have spaces'), Length(min=3, max=12)])
 
   def validate_key(self, key):
     """Check that the key is not already taken"""

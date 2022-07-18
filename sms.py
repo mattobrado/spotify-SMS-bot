@@ -6,6 +6,7 @@ from twilio.rest import Client
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
 MY_TWILIO_NUMBER = os.environ.get('MY_TWILIO_NUMBER')
+MY_PHONE_NUMBER = os.environ.get('MY_PHONE_NUMBER')
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
@@ -47,4 +48,14 @@ def key_instructions_notification(phone_number, playlist):
       body=f"Tell your friends to text #{playlist.key} to {MY_TWILIO_NUMBER} and songs recieved from them will be added to your playlist",
       from_= MY_TWILIO_NUMBER,
       to= phone_number
+    )
+
+def send_request_access_message(email):
+  """Send a message to a user telling them how to add other people"""
+
+  client.messages \
+    .create(
+      body=f"{email} has requested access to spotify text message playlists",
+      from_= MY_TWILIO_NUMBER,
+      to= MY_PHONE_NUMBER
     )
