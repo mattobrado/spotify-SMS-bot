@@ -119,7 +119,7 @@ def get_or_create_host_user(auth_data):
   profile_response = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header) # .json() to unpack
 
   print(profile_response)
-
+  print(f"profile_response.status_code: {profile_response.status_code}")
   # If we got 403 "forbidden" (if the spotify account is not added to our app, required because the spotify app is in development mode) 
   if profile_response.status_code == 403: 
     return None # Don't return a host_user.
