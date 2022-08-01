@@ -121,7 +121,11 @@ def show_profile(playlist_id):
   if not host_user:
     return redirect('/authorize')
 
-  playlist = Playlist.query.get_or_404(playlist_id) # Get the playlist
+  playlist = Playlist.query.filter_by(id = playlist_id).first() # Get the playlist
+
+  if not playlist:
+    flash("You don't have any playlists yet", 'warning')
+    return redirect("/playlists") # Redirect the user to the playlists page to create a playlist
 
   form = load_select_playlist_form_choices(host_user=host_user) # Get a form with all of a host user's playlists as choices
 
