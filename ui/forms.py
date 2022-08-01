@@ -4,7 +4,6 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField
 from wtforms.validators import InputRequired, ValidationError, DataRequired, Regexp, Length
 
-
 from models import Playlist
 
 

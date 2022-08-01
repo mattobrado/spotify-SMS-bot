@@ -1,4 +1,5 @@
-"""AUTHORIZATION/LOGIN """
+""" AUTHORIZATION/LOGIN """
+
 from flask import Blueprint, flash, redirect, render_template, request, session
 from spotify import AUTHORIZATION_URL, get_auth_tokens, get_or_create_host_user
 from app import db

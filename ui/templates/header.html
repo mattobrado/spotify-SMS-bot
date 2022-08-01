@@ -3,7 +3,7 @@
 {% block navbar_items %}
 <ul class="navbar-nav flex-row flex-wrap ms-md-auto justify-content-end">
   <li class="nav-item">
-    <a class="nav-link" href="/playlists">My Playlists</a>
+    <a class="nav-link" href="{{ url_for('user.show_all_playlists')}}">My Playlists</a>
   </li>
   <li class="nav-item">
     <a class="nav-link" href="{{ url_for('auth.get_phone_number')}}">Update Phone Number</a>

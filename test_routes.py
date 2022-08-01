@@ -17,4 +17,4 @@ class FlaskTests(TestCase):
       response = self.client.get('/')
 
       self.assertEqual(response.status_code, 302)
-      self.assertEqual(response.location, '/authorize')
+      self.assertEqual(response.location, '/auth')
