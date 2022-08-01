@@ -6,7 +6,7 @@
     <a class="nav-link" href="/playlists">My Playlists</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="/phone">Update Phone Number</a>
+    <a class="nav-link" href="{{ url_for('auth.get_phone_number')}}">Update Phone Number</a>
   </li>
 </ul>
 {% endblock %}

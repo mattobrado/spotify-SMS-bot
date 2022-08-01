@@ -8,13 +8,15 @@ import os
 
 # from my_secrets import SECRET_KEY
 from models import GuestUser, HostUser, Playlist, connect_db, db
-from forms import PhoneForm, CreatePlaylistForm, load_select_playlist_form_choices
+from forms import CreatePlaylistForm, load_select_playlist_form_choices
 from sms import ask_for_playlist_key, invalid_playlist_key_notification, playlist_key_success_notification
-from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_or_create_guest_user, get_or_create_host_user, get_playlist_key_from_message, get_track_ids_from_message, create_playlist, get_auth_tokens
+from spotify import add_tracks_to_playlist, get_or_create_guest_user, get_playlist_key_from_message, get_track_ids_from_message, create_playlist
 from demo.routes import demo
+from auth.routes import auth
 
 app = Flask(__name__) # Create Flask object
 app.register_blueprint(demo, url_prefix="/demo")
+app.register_blueprint(auth, url_prefix="/auth")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL','postgres:///spotify_sms_playlist').replace("://", "ql://", 1) # PSQL database
 
@@ -32,44 +34,12 @@ db.create_all() # Create all tables
 
 @app.route('/')
 def root():
-  """Redirect to /authorize"""
+  """Redirect to auth /auth"""
 
-  return redirect('/authorize')
-
-# -------------------------- AUTHORIZATION/LOGIN ---------------------------
-
-@app.route('/authorize', methods=['GET', 'POST'])
-def get_authorization():
-  """Make a call to the Spotify to request authorization to access a user's account"""
-
-  return redirect(AUTHORIZATION_URL) # AUTHORIZATION_URL is assembled in spotify.py
+  return redirect('/auth')
 
 
-@app.route('/login')
-def login():
-  """Use code from spotify redirect to get authorizion and retrive or ceate a HostUser"""
-
-  code = request.args['code'] # Get code returned from authorization
-  auth_data = get_auth_tokens(code) # Get authorization header
-  host_user = get_or_create_host_user(auth_data) # Get or create a HostUser based on their spotify profile data
-  
-  # If we couldn't get user data we need to manulally
-  if not host_user:
-    return redirect('/sign-up')
-  
-  session['host_user_id'] = host_user.id # Save host_user_id in session
-  return redirect('/user')
-
-
-@app.route('/log-out')
-def log_out():
-  """Remove host_user data from session and redirect to the authorization route"""
-
-  session.clear() # Remover user data from session
-  return redirect('/authorize')
-
-
-# -------------------------- PROFILE PAGE ---------------------------
+# -------------------------- USER PAGE ---------------------------
 
 @app.route('/user/')
 def redirect_to_active_playlist():
@@ -79,11 +49,11 @@ def redirect_to_active_playlist():
 
   # Prevent users from jumping ahead to /user without first authorizing
   if not host_user:
-    return redirect('/authorize')
+    return redirect('/auth')
   
   # If the user soes not have a phone number, rediect the the phone number form
   if not host_user.phone_number:
-    return redirect('/phone')
+    return redirect('/auth/phone')
 
   playlist_id = host_user.active_playlist_id # Get the users active playlist
 
@@ -103,7 +73,7 @@ def show_playlist(id):
 
   # Prevent users from jumping ahead to /user without first authorizing
   if not host_user:
-    return redirect('/authorize')
+    return redirect('/auth')
 
   playlist = Playlist.query.filter_by(id = id).first() # Get the playlist
 
@@ -120,35 +90,6 @@ def show_playlist(id):
   return render_template('profile.html', host_user=host_user, playlist=playlist, form=form)
 
 
-@app.route('/phone', methods = ['GET', 'POST'])
-def get_phone_number():
-  """Get a user's phone number using the PhoneForm"""
-
-  host_user = get_host_user_from_session()
-
-  # Prevent users from jumping ahead without first authorizing
-  if not host_user:
-    return redirect('/authorize')
-
-  form = PhoneForm() # Form for getting phone numbers
-
-  if form.validate_on_submit():
-    guest_user = GuestUser.query.filter_by(phone_number=form.phone.data).first()
-    # if there is a guest user with that phone number
-    if guest_user:
-      host_user.active_playlist_id = guest_user.active_playlist_id #copy the guest user's active playlist
-      db.session.delete(guest_user) # delete guest user to replace them with host user
-      db.session.commit()
-
-    host_user.phone_number = form.phone.data # Set host user's phone number
-    db.session.add(host_user)
-    db.session.commit()
-    flash('Phone Number Updated', 'success')
-    return redirect('/user')
-  
-  return render_template('phone.html', user=host_user, form=form)
-
-
 @app.route('/playlists', methods = ['GET', 'POST'])
 def show_playlists():
   """Show all of users playlists and a """
@@ -157,7 +98,7 @@ def show_playlists():
 
   # Prevent users from jumping ahead without first authorizing
   if not host_user:
-    return redirect('/authorize')
+    return redirect('/auth')
   
   form = CreatePlaylistForm() # Form for making a new playlist
 

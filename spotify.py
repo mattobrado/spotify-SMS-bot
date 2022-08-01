@@ -13,7 +13,7 @@ from sms import key_instructions_notification, playlist_key_success_notification
 MY_TWILIO_NUMBER = os.environ.get('MY_TWILIO_NUMBER')
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.environ.get('SPOTIFY_CLIENT_SECRET')
-REDIRECT_URI = os.environ.get('REDIRECT_URI','http://localhost:5000/login')
+REDIRECT_URI = os.environ.get('REDIRECT_URI','http://localhost:5000/auth/login')
 
 
 CLIENT_INFO_BASE64_ENCODED = base64.b64encode((f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}").encode()) 

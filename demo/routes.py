@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template
 from .forms import EmailForm
 from sms import send_request_access_message
 
-demo = Blueprint("demo", __name__, static_folder="static", template_folder="templates")
+demo = Blueprint("demo", __name__, template_folder="templates")
 
 @demo.route("/", methods=['GET', 'POST'])
 def show_demo():
