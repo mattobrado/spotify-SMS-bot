@@ -1,17 +1,12 @@
 """WTForms"""
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, EmailField
-from wtforms.validators import InputRequired, ValidationError, DataRequired, Regexp, Length, Email
+from wtforms import StringField, SubmitField, SelectField
+from wtforms.validators import InputRequired, ValidationError, DataRequired, Regexp, Length
 import phonenumbers
-import email_validator
 
 from models import Playlist
 
-
-class EmailForm(FlaskForm):
-  """Form to get email"""
-  email = EmailField('Spotify Email Address', validators=[DataRequired(),Email()])
 
 class PhoneForm(FlaskForm):
   """PhoneForm was provided by Twilio"""

@@ -8,12 +8,13 @@ import os
 
 # from my_secrets import SECRET_KEY
 from models import GuestUser, HostUser, Playlist, connect_db, db
-from forms import EmailForm, PhoneForm, CreatePlaylistForm, load_select_playlist_form_choices
-from sms import ask_for_playlist_key, invalid_playlist_key_notification, playlist_key_success_notification, send_request_access_message
+from forms import PhoneForm, CreatePlaylistForm, load_select_playlist_form_choices
+from sms import ask_for_playlist_key, invalid_playlist_key_notification, playlist_key_success_notification
 from spotify import AUTHORIZATION_URL, add_tracks_to_playlist, get_or_create_guest_user, get_or_create_host_user, get_playlist_key_from_message, get_track_ids_from_message, create_playlist, get_auth_tokens
-
+from demo.routes import demo
 
 app = Flask(__name__) # Create Flask object
+app.register_blueprint(demo, url_prefix="/demo")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL','postgres:///spotify_sms_playlist').replace("://", "ql://", 1) # PSQL database
 
@@ -34,23 +35,6 @@ def root():
   """Redirect to /authorize"""
 
   return redirect('/authorize')
-
-@app.route('/sign-up', methods=['GET', 'POST'])
-def sign_up():
-  """"""
-
-  form = EmailForm()
-
-  if form.validate_on_submit():
-    send_request_access_message(form.email.data)
-    return redirect('/thanks')
-  return render_template('request_access/email.html',form=form)
-
-@app.route('/thanks', methods=['GET', 'POST'])
-def thanks():
-  """"""
-
-  return render_template('request_access/thanks.html')
 
 # -------------------------- AUTHORIZATION/LOGIN ---------------------------
 
@@ -74,7 +58,7 @@ def login():
     return redirect('/sign-up')
   
   session['host_user_id'] = host_user.id # Save host_user_id in session
-  return redirect('/profile')
+  return redirect('/user')
 
 
 @app.route('/log-out')
@@ -87,13 +71,13 @@ def log_out():
 
 # -------------------------- PROFILE PAGE ---------------------------
 
-@app.route('/profile/')
+@app.route('/user/')
 def redirect_to_active_playlist():
   """Bring a user to their active playlist page"""
 
   host_user = get_host_user_from_session()
 
-  # Prevent users from jumping ahead to /profile without first authorizing
+  # Prevent users from jumping ahead to /user without first authorizing
   if not host_user:
     return redirect('/authorize')
   
@@ -108,23 +92,22 @@ def redirect_to_active_playlist():
     flash("You don't have any playlists yet", 'warning')
     return redirect("/playlists") # Redirect the user to the playlists page to create a playlist
   else:
-    return redirect(f"/profile/{playlist_id}") # Redirect to the user's active playlist page
+    return redirect(f"/user/{playlist_id}") # Redirect to the user's active playlist page
 
 
-@app.route('/profile/<string:playlist_id>', methods=['GET', 'POST'])
-def show_profile(playlist_id):
+@app.route('/user/<string:id>', methods=['GET', 'POST'])
+def show_playlist(id):
   """Show a user's playlist"""
   
   host_user = get_host_user_from_session()
 
-  # Prevent users from jumping ahead to /profile without first authorizing
+  # Prevent users from jumping ahead to /user without first authorizing
   if not host_user:
     return redirect('/authorize')
 
-  playlist = Playlist.query.filter_by(id = playlist_id).first() # Get the playlist
+  playlist = Playlist.query.filter_by(id = id).first() # Get the playlist
 
   if not playlist:
-    flash("You don't have any playlists yet", 'warning')
     return redirect("/playlists") # Redirect the user to the playlists page to create a playlist
 
   form = load_select_playlist_form_choices(host_user=host_user) # Get a form with all of a host user's playlists as choices
@@ -132,7 +115,7 @@ def show_profile(playlist_id):
   # When the form is submitted
   if form.validate_on_submit():
     new_playlist_id = form.playlist.data # Get playlist id from form
-    return redirect(f"/profile/{new_playlist_id}")  # Redirect to that playlist's page
+    return redirect(f"/user/{new_playlist_id}")  # Redirect to that playlist's page
 
   return render_template('profile.html', host_user=host_user, playlist=playlist, form=form)
 
@@ -161,7 +144,7 @@ def get_phone_number():
     db.session.add(host_user)
     db.session.commit()
     flash('Phone Number Updated', 'success')
-    return redirect('/profile')
+    return redirect('/user')
   
   return render_template('phone.html', user=host_user, form=form)
 
@@ -184,21 +167,21 @@ def show_playlists():
     key = form.key.data.lower()
     create_playlist(host_user=host_user, title=title, key=key) # Create the playlist
     flash('Playlist Created', 'success')
-    return redirect('/profile')
+    return redirect('/user')
 
   return render_template('playlists.html', host_user=host_user, form=form)
 
 
-@app.route('/profile/<string:playlist_id>/delete', methods=['POST'])
-def delete_playlist(playlist_id):
+@app.route('/user/<string:id>/delete', methods=['POST'])
+def delete_playlist(id):
   """Delete a playlist"""
 
-  playlist = Playlist.query.get_or_404(playlist_id) # Get the playlist
+  playlist = Playlist.query.get_or_404(id) # Get the playlist
 
   # If the host user is the owner of the playlist
   if playlist.owner_id == session['host_user_id']:
     # Get users who have that playlist as their active playlist
-    guest_users = GuestUser.query.filter_by(active_playlist_id=playlist_id).all()
+    guest_users = GuestUser.query.filter_by(active_playlist_id=id).all()
     for guest_user in guest_users:
       guest_user.active_playlist_id = None # Set thier active playlist id to None
       db.session.add(guest_user)
@@ -212,23 +195,23 @@ def delete_playlist(playlist_id):
   else:
     flash('You cannot delete that playlist')
 
-  return redirect('/profile')
+  return redirect('/user')
 
-@app.route('/profile/<string:playlist_id>/activate', methods=['POST'])
-def activate_playlist(playlist_id):
+@app.route('/user/<string:id>/activate', methods=['POST'])
+def activate_playlist(id):
   """Set a playlist to be a user's active playlist"""
 
   host_user = get_host_user_from_session()
-  playlist = Playlist.query.get_or_404(playlist_id) # Get the playlist
+  playlist = Playlist.query.get_or_404(id) # Get the playlist
 
   if playlist:
     host_user.active_playlist_id = playlist.id
     db.session.add(host_user) 
     db.session.commit()
     flash('Playlist activated, songs recieved from you will go here', 'success')
-    return redirect(f"/profile/{playlist.id}")
+    return redirect(f"/user/{playlist.id}")
 
-  return redirect('/profile')
+  return redirect('/user')
 
 
 # -------------------------- Recieving Texts ---------------------------
@@ -275,7 +258,7 @@ def receive_sms():
 
 
 def get_host_user_from_session():
-  """Prevent users from jumping ahead to /profile without first authorizing"""
+  """Prevent users from jumping ahead to /user without first authorizing"""
 
   if 'host_user_id' not in session:
     return None

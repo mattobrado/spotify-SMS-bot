@@ -33,7 +33,7 @@
   </div>
   <div class="row">
     <button class="btn btn-sm btn-secondary col-3" onClick="window.location.reload();">Refresh</button>
-    <form class="col-3" action="/profile/{{ playlist.id }}/activate" style="display:inline;" method="POST">
+    <form class="col-3" action="{{ url_for('activate_playlist', id = playlist.id) }}" style="display:inline;" method="POST">
       <button class="btn btn-sm btn-secondary col-12">Make This My Active Playlist</button>
     </form>
   </div>
