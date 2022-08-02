@@ -7,6 +7,7 @@
 
   {% block styles %}
   {{ bootstrap.load_css() }}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/16.0.4/css/intlTelInput.css">
   {% endblock %}
   <link rel="stylesheet" href="../static/styles.css">
   <title>
@@ -14,7 +15,7 @@
   </title>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg" role="navigation">
+<nav class="navbar" role="navigation">
   <div class="container-fluid">
     <a class="navbar-brand" href="/user">Spotify Text Message Playlists</a>
     {% block navbar_items %}
@@ -31,6 +32,7 @@
 </div>
 {% block scripts %}
 {{ bootstrap.load_js() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/16.0.4/js/intlTelInput.min.js"></script>
 {% endblock %}
 </body>
 </html>

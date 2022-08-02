@@ -35,7 +35,7 @@ def playlist_key_success_notification(phone_number, playlist):
 
   client.messages \
     .create(
-      body=f"Success! Songs received from you will be added to #{playlist.key} {playlist.url}",
+      body=f"Success! Spotify links received from you will be added to #{playlist.key} {playlist.url}",
       from_= MY_TWILIO_NUMBER,
       to= phone_number
     )
@@ -45,7 +45,7 @@ def key_instructions_notification(phone_number, playlist):
 
   client.messages \
     .create(
-      body=f"Tell your friends to text #{playlist.key} to {MY_TWILIO_NUMBER} and songs recieved from them will be added to your playlist",
+      body=f"Tell your friends to text #{playlist.key} to {MY_TWILIO_NUMBER} and Spotify links recieved from them will be added to your playlist",
       from_= MY_TWILIO_NUMBER,
       to= phone_number
     )
