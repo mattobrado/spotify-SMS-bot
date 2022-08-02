@@ -1,10 +1,11 @@
 """ User interface """
 
 from flask import Blueprint, flash, redirect, render_template, session
-from .forms import CreatePlaylistForm, load_select_playlist_form_choices
+from .forms import CreatePlaylistForm
 from models import GuestUser, HostUser, Playlist
 from spotify import create_playlist
 from app import db
+from sms import MY_TWILIO_NUMBER
 
 user = Blueprint("user", __name__, template_folder="templates")
 
@@ -27,7 +28,6 @@ def redirect_to_active_playlist():
 
   # If the user doesn't have an active playlist
   if not playlist_id:
-    flash("You don't have any playlists yet", 'warning')
     return redirect("/user/playlists") # Redirect the user to the playlists page to create a playlist
   else:
     return redirect(f"/user/{playlist_id}") # Redirect to the user's active playlist page
@@ -48,14 +48,7 @@ def show_playlist(id):
   if not playlist:
     return redirect("/user/playlists") # Redirect the user to the playlists page to create a playlist
 
-  form = load_select_playlist_form_choices(host_user=host_user) # Get a form with all of a host user's playlists as choices
-
-  # When the form is submitted
-  if form.validate_on_submit():
-    new_playlist_id = form.playlist.data # Get playlist id from form
-    return redirect(f"/user/{new_playlist_id}")  # Redirect to that playlist's page
-
-  return render_template('view_playlist.html', host_user=host_user, playlist=playlist, form=form)
+  return render_template('view_playlist.html', host_user=host_user, playlist=playlist, twilio_phone_number = MY_TWILIO_NUMBER)
 
 @user.route('/<string:id>/delete', methods=['POST'])
 def delete_playlist(id):

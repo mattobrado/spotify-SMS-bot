@@ -3,39 +3,25 @@
 {% block display_name %}{{ host_user.display_name }}{% endblock %}
 
 {% block content %}
-
-
 <div class="container">
-  <form method="POST">
-    {{ form.hidden_tag() }}
-    <div class="row">
-      {% for field in form if field.widget.input_type != 'hidden' %}
-        {% for error in field.errors %}
-          <span class="text-danger">{{ error }}</span>
-        {% endfor %}
-        {{ field(placeholder="Select Playlist", class="form-control text-secondary col") }}
-      {% endfor %}
-      <button class="btn btn-primary col-2">Go</button>
-    </div>
-  </form>
-</div>
-<div class="container has-top-margin">
+  <h1>
+    <a href="{{playlist.url}}" target="_blank" rel="noopener noreferrer">
+    {{playlist.title}}</a> #{{playlist.key}}
+
+  </h1>
+  {% if playlist.id == host_user.active_playlist_id %}
+  <p>You can send Spotify links to {{ twilio_phone_number }} to add songs to this playlist.</p>
+  <p>After your friends text #{{playlist.key}} to {{ twilio_phone_number }}, they can add songs by sending links too.</p>
+  {% else %}
+  <p class="text-danger">This playlist is not your active playlist.</p>
+  <p>Spotify links received from you will be added to "{{ host_user.active_playlist.title }}" #{{ host_user.active_playlist.key }}.</p>
+  <p>If you want Spotify links recieved from you to go to this playlist, push "Make This My Active Playlist"</p>
   <div class="row">
-    <h1 class="col"><a href="{{playlist.url}}" target="_blank" rel="noopener noreferrer">
-      {{playlist.title}}</a> #{{playlist.key}}
-      {% if playlist.id == host_user.active_playlist_id %}
-        (active)  
-      {% else %}
-        (inactive)
-      {% endif %}
-    </h1>
-  </div>
-  <div class="row">
-    <button class="btn btn-sm btn-secondary col-3" onClick="window.location.reload();">Refresh</button>
-    <form class="col-3" action="{{ url_for('user.activate_playlist', id = playlist.id) }}" style="display:inline;" method="POST">
-      <button class="btn btn-sm btn-secondary col-12">Make This My Active Playlist</button>
+    <form action="{{ url_for('user.activate_playlist', id = playlist.id) }}" style="display:inline;" method="POST">
+      <button class="btn btn-sm btn-success col-12">Make This My Active Playlist</button>
     </form>
   </div>
+  {% endif %}
 </div>
 <div class="container has-top-margin">
   <table class="table table-striped">

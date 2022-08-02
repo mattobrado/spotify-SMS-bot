@@ -1,7 +1,7 @@
 """WTForms"""
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField
+from wtforms import StringField
 from wtforms.validators import InputRequired, ValidationError, DataRequired, Regexp, Length
 
 from models import Playlist
@@ -20,21 +20,3 @@ class CreatePlaylistForm(FlaskForm):
     # If playlist exists
     if playlist:
       raise ValidationError('Key is already taken!')
-
-
-class SelectPlaylistForm(FlaskForm):
-  """Form for seclecting a playlist to view"""
-
-  playlist = SelectField('Select Playlist', description="test")
-
-def load_select_playlist_form_choices(host_user):
-  """Populate Seclect Playlist form with choices"""
-
-  select_form = SelectPlaylistForm() # Form for making a new playlist
-
-  choices = [("","Select Playlist")]
-  for playlist in host_user.playlists:
-    choices.append((playlist.id, f"{playlist.title} #{playlist.key}"))
-  select_form.playlist.choices = choices
-
-  return select_form
