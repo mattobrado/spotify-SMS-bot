@@ -2,3 +2,5 @@ venv/
 my_secrets.py
 __pycache__/
 secrets.txt
+package-lock.json
+package.json
