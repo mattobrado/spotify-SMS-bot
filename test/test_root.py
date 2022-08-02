@@ -2,7 +2,7 @@ from unittest import TestCase
 from app import app
 from flask import session
 
-class FlaskTests(TestCase):
+class RootTests(TestCase):
 
   def setUp(self):
     """Before every test"""
@@ -11,7 +11,7 @@ class FlaskTests(TestCase):
     app.config['TESTING'] = True
 
   def test_root(self):
-    """Verify root (/) redirects to /authorize"""
+    """Verify root (/) redirects to /auth"""
     
     with self.client:
       response = self.client.get('/')

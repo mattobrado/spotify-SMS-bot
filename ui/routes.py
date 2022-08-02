@@ -1,4 +1,4 @@
-""" User interface"""
+""" User interface """
 
 from flask import Blueprint, flash, redirect, render_template, session
 from .forms import CreatePlaylistForm, load_select_playlist_form_choices

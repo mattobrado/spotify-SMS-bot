@@ -20,7 +20,7 @@ CLIENT_INFO_BASE64_ENCODED = base64.b64encode((f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CL
 SPOTIFY_CLIENT_HEADER = {"Authorization": f"Basic {CLIENT_INFO_BASE64_ENCODED.decode()}"}
 
 SPOTIFY_AUTH_BASE_URL = 'https://accounts.spotify.com'
-SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize'
+SPOTIFY_AUTH_URL= SPOTIFY_AUTH_BASE_URL + '/authorize/'
 SPOTIFY_TOKEN_URL = SPOTIFY_AUTH_BASE_URL + '/api/token'
 
 SPOTIFY_API_URL = 'https://api.spotify.com/v1'
