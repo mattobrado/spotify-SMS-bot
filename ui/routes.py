@@ -5,7 +5,7 @@ from .forms import CreatePlaylistForm
 from models import GuestUser, HostUser, Playlist
 from spotify import create_playlist
 from app import db
-from sms import MY_TWILIO_NUMBER
+from sms import MY_TWILIO_NUMBER, playlist_key_success_notification
 
 user = Blueprint("user", __name__, template_folder="templates")
 
@@ -87,6 +87,7 @@ def activate_playlist(id):
     host_user.active_playlist_id = playlist.id
     db.session.add(host_user) 
     db.session.commit()
+    playlist_key_success_notification(phone_number=host_user.phone_number, playlist=playlist) # Send a message to the user
     flash('Playlist activated, Spotify links recieved from you will be added here', 'success')
     return redirect(f"/user/{playlist.id}")
 
