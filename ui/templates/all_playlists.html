@@ -4,53 +4,58 @@
 {% block user %}{{ host_user.display_name }}{% endblock %}
 
 {% block content %}
-<div class="container"style="margin-top:25px">
+
+<div class="container">
+  <h3>Create a Playlist</h3>
+  <p>Your friends will need your playlist's password to add songs so choose a short password like "songs" or "summer".</p>
   <form method="POST">
     {{ form.hidden_tag() }}
-    <div class="container">
-      <div class="row">
-        {% for field in form if field.widget.input_type != 'hidden' %}
-          {% for error in field.errors %}
-            <span class="text-danger">{{ error }}</span>
-          {% endfor %}
-          {{ field(placeholder=field.label.text, class="form-control col") }}
+      {% for field in form if field.widget.input_type != 'hidden' %}
+        {% for error in field.errors %}
+          <span class="text-danger">{{ error }}</span>
         {% endfor %}
-        <button class="btn btn-primary col-2">Create</button>
-      </div>
-    </div>
+        {{ field.label}}
+        {{ field(placeholder=field.description, class="form-control") }}
+      {% endfor %}
+      <button class="btn btn-primary">Create</button>
   </form>
 </div>
-<div class="container has-top-margin">
-  <table class="table">
-    <thead>
-      <th scope="col">Playlist</th>
-      <th scope="col">Key</th>
-      <th class="col-1" scope="col">Activate</th>
-      <th class="col-1" scope="col halign">Delete</th>
-    </thead>
-    <tbody>
-      {% for playlist in host_user.playlists %}
-      <tr scope="row">
-        <!-- target="_blank" rel="noopener noreferrer" makes link open in new tab -->
-        <td><a href="{{ url_for('user.show_playlist', id = playlist.id) }}">{{ playlist.title }}</a>
-          {% if playlist.id == host_user.active_playlist_id %}
-            (active)
-          {% endif %}
-        </td>
-        <td>#{{ playlist.key }}</td>
-        <td>
-          <form action="{{ url_for('user.activate_playlist', id = playlist.id) }}" style="display:inline;" method="POST">
-            <button class="btn btn-sm btn-primary">Activate</button>
-          </form>
-        </td>
-        <td>
-          <form action="{{ url_for('user.delete_playlist', id = playlist.id) }}"  style="display:inline;" method="POST">
-            <button class="btn btn-sm btn-danger">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+
+{% if host_user.playlists | length > 0 %}
+  <div class="container has-top-margin">
+    <h3>Your Playlists</h3>
+    <table class="table">
+      <thead>
+        <th scope="col">Playlist</th>
+        <th scope="col">Key</th>
+        <th class="col-1" scope="col">Activate</th>
+        <th class="col-1" scope="col halign">Delete</th>
+      </thead>
+      <tbody>
+        {% for playlist in host_user.playlists %}
+        <tr scope="row">
+          <!-- target="_blank" rel="noopener noreferrer" makes link open in new tab -->
+          <td><a href="{{ url_for('user.show_playlist', id = playlist.id) }}">{{ playlist.title }}</a>
+            {% if playlist.id == host_user.active_playlist_id %}
+              (active)
+            {% endif %}
+          </td>
+          <td>#{{ playlist.key }}</td>
+          <td>
+            <form action="{{ url_for('user.activate_playlist', id = playlist.id) }}" style="display:inline;" method="POST">
+              <button class="btn btn-sm btn-primary">Activate</button>
+            </form>
+          </td>
+          <td>
+            <form action="{{ url_for('user.delete_playlist', id = playlist.id) }}"  style="display:inline;" method="POST">
+              <button class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
 {% endblock %}

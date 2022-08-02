@@ -10,8 +10,8 @@ from models import Playlist
 class CreatePlaylistForm(FlaskForm):
   """Form for creating a playlist"""
 
-  title = StringField("New Playlist Title", validators=[InputRequired()])
-  key = StringField("Playlist Key. Your friends will use this to add tracks", validators=[DataRequired(), Regexp(r'^[\w.@+-]+$',message='Key cannot have spaces'), Length(min=3, max=12)])
+  title = StringField("Playlist Title", description="My Playlist", validators=[InputRequired()])
+  key = StringField("Playlist Password", description="bops", validators=[DataRequired(), Regexp(r'^[\w.@+-]+$',message='Key cannot have spaces'), Length(min=3, max=12)])
 
   def validate_key(self, key):
     """Check that the key is not already taken"""
@@ -25,10 +25,7 @@ class CreatePlaylistForm(FlaskForm):
 class SelectPlaylistForm(FlaskForm):
   """Form for seclecting a playlist to view"""
 
-  # host_user_id = StringField()
-
   playlist = SelectField('Select Playlist', description="test")
-  # submit= SubmitField()
 
 def load_select_playlist_form_choices(host_user):
   """Populate Seclect Playlist form with choices"""
