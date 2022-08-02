@@ -87,7 +87,7 @@ def activate_playlist(id):
     host_user.active_playlist_id = playlist.id
     db.session.add(host_user) 
     db.session.commit()
-    flash('Playlist activated, songs recieved from you will go here', 'success')
+    flash('Playlist activated, Spotify links recieved from you will be added here', 'success')
     return redirect(f"/user/{playlist.id}")
 
   return redirect('/user')

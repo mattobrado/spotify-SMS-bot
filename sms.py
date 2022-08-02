@@ -11,11 +11,11 @@ MY_PHONE_NUMBER = os.environ.get('MY_PHONE_NUMBER')
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 def ask_for_playlist_key(phone_number):
-  """Send a message to a user asking for a playlist #key"""
+  """Send a message to a user asking for a playlist #password"""
 
   client.messages \
     .create(
-      body="Which playlist do you want to add songs to? Ask the playlist's host for the #key.",
+      body="Which playlist do you want to add songs to? Ask the playlist's owner for the #password.",
       from_= MY_TWILIO_NUMBER,
       to= phone_number
     )
@@ -25,13 +25,13 @@ def invalid_playlist_key_notification(phone_number, key):
 
   client.messages \
     .create(
-      body=f"Sorry, I couldn't find a playlist with a #key of #{key}",
+      body=f"Sorry, I couldn't find a playlist with a #password of #{key}",
       from_= MY_TWILIO_NUMBER,
       to= phone_number
     )
 
 def playlist_key_success_notification(phone_number, playlist):
-  """Send a message to a user to notify them thier #key was invlaid"""
+  """Send a message to a user to notify them thier #password was invlaid"""
 
   client.messages \
     .create(
