@@ -1,16 +1,17 @@
 """ User interface """
 
 from flask import Blueprint, flash, redirect, render_template, session
-from .forms import CreatePlaylistForm
+
+from .ui_forms import CreatePlaylistForm, PhoneForm
 from models import GuestUser, HostUser, Playlist
 from spotify import create_playlist
 from app import db
 from sms import MY_TWILIO_NUMBER, playlist_key_success_notification
 
-user = Blueprint("user", __name__, template_folder="templates")
+ui = Blueprint("ui", __name__, template_folder="templates")
 
 
-@user.route('/')
+@ui.route('/')
 def redirect_to_active_playlist():
   """Bring a user to their active playlist page"""
 
@@ -22,7 +23,7 @@ def redirect_to_active_playlist():
   
   # If the user soes not have a phone number, rediect the the phone number form
   if not host_user.phone_number:
-    return redirect('/auth/phone')
+    return redirect('/phone')
 
   playlist_id = host_user.active_playlist_id # Get the users active playlist
 
@@ -33,7 +34,35 @@ def redirect_to_active_playlist():
     return redirect(f"/user/{playlist_id}") # Redirect to the user's active playlist page
 
 
-@user.route('/<string:id>', methods=['GET', 'POST'])
+@ui.route('/phone', methods = ['GET', 'POST'])
+def get_phone_number():
+  """Get a user's phone number using the PhoneForm"""
+
+  if 'host_user_id' not in session:
+    return redirect('/auth')
+
+  host_user = HostUser.query.get_or_404(session['host_user_id']) # Get host_user using host_user_id in session
+
+  form = PhoneForm() # Form for getting phone numbers
+
+  if form.validate_on_submit():
+    guest_user = GuestUser.query.filter_by(phone_number=form.phone.data).first()
+    # if there is a guest user with that phone number
+    if guest_user:
+      host_user.active_playlist_id = guest_user.active_playlist_id #copy the guest user's active playlist
+      db.session.delete(guest_user) # delete guest user to replace them with host user
+      db.session.commit()
+
+    host_user.phone_number = form.phone.data # Set host user's phone number
+    db.session.add(host_user)
+    db.session.commit()
+    flash('Phone Number Updated', 'success')
+    return redirect('/user')
+  
+  return render_template('phone.html', user=host_user, form=form)
+
+
+@ui.route('/<string:id>', methods=['GET', 'POST'])
 def show_playlist(id):
   """Show a user's playlist"""
   
@@ -50,7 +79,7 @@ def show_playlist(id):
 
   return render_template('view_playlist.html', host_user=host_user, playlist=playlist, twilio_phone_number = MY_TWILIO_NUMBER)
 
-@user.route('/<string:id>/delete', methods=['POST'])
+@ui.route('/<string:id>/delete', methods=['POST'])
 def delete_playlist(id):
   """Delete a playlist"""
 
@@ -76,7 +105,7 @@ def delete_playlist(id):
   return redirect('/user')
 
 
-@user.route('/<string:id>/activate', methods=['POST'])
+@ui.route('/<string:id>/activate', methods=['POST'])
 def activate_playlist(id):
   """Set a playlist to be a user's active playlist"""
 
@@ -94,7 +123,7 @@ def activate_playlist(id):
   return redirect('/user')
 
 
-@user.route('/playlists', methods = ['GET', 'POST'])
+@ui.route('/playlists', methods = ['GET', 'POST'])
 def show_all_playlists():
   """Show all of users playlists and a """
 

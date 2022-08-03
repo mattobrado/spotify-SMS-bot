@@ -9,17 +9,17 @@
   <div class="collapse navbar-collapse" id="navbarsExample01">
     <ul class="navbar-nav me-auto mb-2">
       <li class="nav-item">
-        <a class="nav-link text-secondary" href="{{ url_for('user.show_all_playlists')}}">Create a Playlist</a>
+        <a class="nav-link text-secondary" href="{{ url_for('ui.show_all_playlists')}}">Create a Playlist</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-secondary" href="{{ url_for('user.show_all_playlists')}}">See All My Playlists</a>
+        <a class="nav-link text-secondary" href="{{ url_for('ui.show_all_playlists')}}">See All My Playlists</a>
       </li>
       <li class="nav-item">
         <a class="nav-link text-secondary" href="{{ url_for('auth.log_out')}}">Log Out ({% block display_name %}{% endblock %})</a>
         <!-- <p class="lead"> <small>(<a class="text-muted"href="/log-out">log out</a>)</small></p> -->
       </li>
       <li class="nav-item">
-        <a class="nav-link text-secondary" href="{{ url_for('auth.get_phone_number')}}">Update Phone Number</a>
+        <a class="nav-link text-secondary" href="{{ url_for('ui.get_phone_number')}}">Update Phone Number</a>
       </li>
     </ul>
   </div>

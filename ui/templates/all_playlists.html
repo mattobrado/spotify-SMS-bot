@@ -36,19 +36,19 @@
         {% for playlist in host_user.playlists %}
         <tr scope="row">
           <!-- target="_blank" rel="noopener noreferrer" makes link open in new tab -->
-          <td><a href="{{ url_for('user.show_playlist', id = playlist.id) }}">{{ playlist.title }}</a>
+          <td><a href="{{ url_for('ui.show_playlist', id = playlist.id) }}">{{ playlist.title }}</a>
             {% if playlist.id == host_user.active_playlist_id %}
               (active)
             {% endif %}
           </td>
           <td>#{{ playlist.key }}</td>
           <td>
-            <form action="{{ url_for('user.activate_playlist', id = playlist.id) }}" style="display:inline;" method="POST">
+            <form action="{{ url_for('ui.activate_playlist', id = playlist.id) }}" style="display:inline;" method="POST">
               <button class="btn btn-sm btn-outline-primary">Activate</button>
             </form>
           </td>
           <td>
-            <form action="{{ url_for('user.delete_playlist', id = playlist.id) }}"  style="display:inline;" method="POST">
+            <form action="{{ url_for('ui.delete_playlist', id = playlist.id) }}"  style="display:inline;" method="POST">
               <button class="btn btn-sm btn-outline-danger">Delete</button>
             </form>
           </td>

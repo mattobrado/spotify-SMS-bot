@@ -63,7 +63,11 @@ def get_auth_tokens(code):
   auth_response = requests.post(SPOTIFY_TOKEN_URL, headers=SPOTIFY_CLIENT_HEADER , data=data)
 
   # Tokens returned 
-  return json.loads(auth_response.text) #.json() to convert to a python dictionary
+  # if spotify gave us a sccessful status code
+  if auth_response.status_code == 200:
+    return json.loads(auth_response.text) # return the response, .json() to convert to a python dictionary
+  
+  return None
 
 
 def refresh_access_token(user):
@@ -98,7 +102,7 @@ def make_authorized_api_call(host_user, endpoint, method='POST', data=None, para
   if request.status_code == 401:
     refresh_access_token(host_user) #refresh the owner's access_token
     request = request_method(endpoint, headers=host_user.auth_header, data=data,params=params) # make the request again
-  # print(request.status_code)
+
   if request.status_code < 400:
     return json.loads(request.text) # Unpack response
   else:
@@ -108,7 +112,13 @@ def make_authorized_api_call(host_user, endpoint, method='POST', data=None, para
 # -------------------------- DATABASE ---------------------------
 
 def get_or_create_host_user(auth_data):
-  """Make a request to the spotify API and return a HostUser object"""
+  """Make a request to the spotify API and return a HostUser object
+  
+  if auth_data is None, return None"""
+  
+  # if auth data was not received
+  if not auth_data:
+    return None # return none
 
   access_token = auth_data["access_token"]
   refresh_token = auth_data["refresh_token"]
@@ -118,8 +128,6 @@ def get_or_create_host_user(auth_data):
   USER_PROFILE_ENDPOINT = SPOTIFY_API_URL + '/me'
   profile_response = requests.get(USER_PROFILE_ENDPOINT, headers=auth_header) # .json() to unpack
 
-  print(profile_response)
-  print(f"profile_response.status_code: {profile_response.status_code}")
   # If we got 403 "forbidden" (if the spotify account is not added to our app, required because the spotify app is in development mode) 
   if profile_response.status_code == 403: 
     return None # Don't return a host_user.
