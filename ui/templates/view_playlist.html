@@ -10,10 +10,10 @@
 
   </h1>
   {% if playlist.id == host_user.active_playlist_id %}
-  <p>You can send Spotify links to {{ twilio_phone_number }} to add songs to this playlist.</p>
-  <p>After your friends text #{{playlist.key}} to {{ twilio_phone_number }}, they can add songs by sending links too.</p>
+  <p>You can send Spotify links to <em class="text-primary">{{ twilio_phone_number }}</em> to add songs to this playlist.</p>
+  <p>After your friends text <em class="text-primary">#{{playlist.key}}</em> to {{ twilio_phone_number }}, they can add songs by sending links too.</p>
   {% else %}
-  <p class="text-danger">This playlist is not your active playlist.</p>
+  <h4 class="text-primary">This playlist is not your active playlist.</h4>
   <p>Spotify links received from you will be added to "{{ host_user.active_playlist.title }}" #{{ host_user.active_playlist.key }}.</p>
   <p>If you want Spotify links recieved from you to go to this playlist, push "Make This My Active Playlist"</p>
   <div class="row">

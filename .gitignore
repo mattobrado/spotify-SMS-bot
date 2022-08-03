@@ -4,3 +4,4 @@ __pycache__/
 secrets.txt
 package-lock.json
 package.json
+static/node_modules/

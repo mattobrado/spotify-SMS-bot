@@ -8,6 +8,7 @@
   {% block styles %}
   {{ bootstrap.load_css() }}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/16.0.4/css/intlTelInput.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/main.css') }}">
   {% endblock %}
   <link rel="stylesheet" href="../static/styles.css">
   <title>
@@ -17,7 +18,7 @@
 <body>
 <nav class="navbar" role="navigation">
   <div class="container-fluid">
-    <a class="navbar-brand" href="/user">Spotify Text Message Playlists</a>
+    <a class="navbar-brand text-white" href="/user">Spotify Text Playlists</a>
     {% block navbar_items %}
     {% endblock %}
   </div>
