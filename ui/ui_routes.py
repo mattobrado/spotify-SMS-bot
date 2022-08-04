@@ -15,9 +15,9 @@ ui = Blueprint("ui", __name__, template_folder="templates")
 def redirect_to_active_playlist():
   """Bring a user to their active playlist page"""
 
-  host_user = get_host_user_from_session()
+  host_user = get_host_user_from_session() # Get the host user object from id stored in session
 
-  # Prevent users from jumping ahead to /user without first authorizing
+  # Prevent users from jumping ahead to user interface without authorizing first
   if not host_user:
     return redirect('/auth')
   
@@ -30,19 +30,20 @@ def redirect_to_active_playlist():
   # If the user doesn't have an active playlist
   if not playlist_id:
     return redirect("/user/playlists") # Redirect the user to the playlists page to create a playlist
-  else:
-    return redirect(f"/user/{playlist_id}") # Redirect to the user's active playlist page
+  
+  return redirect(f"/user/{playlist_id}") # Redirect to the user's active playlist page
 
 
 @ui.route('/phone', methods = ['GET', 'POST'])
 def get_phone_number():
   """Get a user's phone number using the PhoneForm"""
 
-  if 'host_user_id' not in session:
+  host_user = get_host_user_from_session() # Get the host user object from id stored in session
+
+  # Prevent users from jumping ahead to user interface without authorizing first
+  if not host_user:
     return redirect('/auth')
-
-  host_user = HostUser.query.get_or_404(session['host_user_id']) # Get host_user using host_user_id in session
-
+    
   form = PhoneForm() # Form for getting phone numbers
 
   if form.validate_on_submit():
@@ -150,5 +151,5 @@ def get_host_user_from_session():
 
   if 'host_user_id' not in session:
     return None
-  else:
-    return HostUser.query.get_or_404(session['host_user_id']) # Get host_user using host_user_id in session
+
+  return HostUser.query.filter_by(id=session['host_user_id']).first() # Get host_user using host_user_id in session

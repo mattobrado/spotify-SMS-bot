@@ -13,8 +13,7 @@ class RootTests(TestCase):
   def test_root(self):
     """Verify root (/) redirects to /auth"""
     
-    with self.client:
-      response = self.client.get('/')
+    response = self.client.get('/')
 
-      self.assertEqual(response.status_code, 302)
-      self.assertEqual(response.location, '/auth')
+    self.assertEqual(response.status_code, 302)
+    self.assertEqual(response.location, '/auth')

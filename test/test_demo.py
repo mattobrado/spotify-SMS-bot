@@ -12,8 +12,7 @@ class DemoTests(TestCase):
   def test_demo_page(self):
     """Test demo page show instructions"""
 
-    with self.client:
-      response = self.client.get('/demo/')
+    response = self.client.get('/demo/')
 
     self.assertEqual(response.status_code, 200)
     self.assertIn(b'users must be explicitly added', response.data)
@@ -21,8 +20,7 @@ class DemoTests(TestCase):
   def test_thanks_page(self):
     """Test demo page show instructions"""
 
-    with self.client:
-      response = self.client.get('/demo/thanks')
+    response = self.client.get('/demo/thanks')
 
     self.assertEqual(response.status_code, 200)
     self.assertIn(b'Thanks', response.data)

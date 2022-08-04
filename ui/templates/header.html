@@ -15,7 +15,7 @@
         <a class="nav-link text-secondary" href="{{ url_for('ui.show_all_playlists')}}">See All My Playlists</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-secondary" href="{{ url_for('auth.log_out')}}">Log Out ({% block display_name %}{% endblock %})</a>
+        <a class="nav-link text-secondary" href="{{ url_for('auth.get_authorization')}}">Log Out ({% block display_name %}{% endblock %})</a>
         <!-- <p class="lead"> <small>(<a class="text-muted"href="/log-out">log out</a>)</small></p> -->
       </li>
       <li class="nav-item">

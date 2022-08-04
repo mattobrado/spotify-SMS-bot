@@ -26,13 +26,6 @@ def login():
   if not host_user:
     return redirect('/demo') # redirect to demo page
 
+  session.clear() # Remove previous user data from session
   session['host_user_id'] = host_user.id # Save host_user_id in session
   return redirect('/user')
-
-
-@auth.route('/logout')
-def log_out():
-  """Remove host_user data from session and redirect to the authorization route"""
-  session.clear() # Remover user data from session
-
-  return redirect('/auth')
