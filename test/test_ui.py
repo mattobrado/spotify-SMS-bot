@@ -89,7 +89,7 @@ class UITests(TestCase):
     response = self.client.get('/user/')
 
     self.assertEqual(response.status_code, 302)
-    self.assertEqual(response.location, '/phone')
+    self.assertEqual(response.location, '/user/phone')
 
   def test_ui_user_without_active_playlist(self):
     """Test user is redirected to all playlists page they have no active playlist"""
