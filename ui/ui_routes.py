@@ -23,7 +23,7 @@ def redirect_to_active_playlist():
   
   # If the user soes not have a phone number, rediect the the phone number form
   if not host_user.phone_number:
-    return redirect('/phone')
+    return redirect('/user/phone/')
 
   playlist_id = host_user.active_playlist_id # Get the users active playlist
 
