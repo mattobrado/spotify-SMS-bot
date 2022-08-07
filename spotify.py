@@ -143,13 +143,20 @@ def get_or_create_host_user(auth_data):
     url = profile_data['external_urls']['spotify']
     id = profile_data['id'] # Use same id as spotify
 
-    host_user = HostUser.query.filter_by(email=email).first() # Check if the HostUser is already in the Database using email address
+    guest_user = GuestUser.query.filter_by(id=id).first() # Check if there GuestUser in the database 
+    
+    # If there is already guest user in the database with the same id
+    if guest_user:
+      db.session.delete(guest_user) # Delete the guest user from the database so we can create a host user with the same id
+      db.session.commit() 
+    
+    host_user = HostUser.query.filter_by(id=id).first() # Check if the HostUser is already in the database
 
     # If the user is not in the database
     if not host_user:
-      # Create HostUser object
+      # Create HostUser object.query.filter_by(id=id).first()
       host_user = HostUser(display_name=display_name, email=email, url=url, id=id, access_token=access_token, refresh_token=refresh_token)
-      db.session.add(host_user) # Add HostUser to Database
+      db.session.add(host_user) # Add HostUser to database
       db.session.commit() 
 
     # If the HostUser already exits update the access token and refresh token 
