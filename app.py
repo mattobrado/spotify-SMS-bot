@@ -37,12 +37,12 @@ def root():
 
   return redirect('/auth')
 
-@app.errorhandler(404)
-def page_not_found(error):
+# @app.errorhandler(404)
+# def page_not_found(error):
   
-  return redirect('/user')
+#   return redirect('/user')
 
-@app.errorhandler(500)
-def internal_error(error):
+# @app.errorhandler(500)
+# def internal_error(error):
 
-  return redirect('/user')
+#   return redirect('/user')
