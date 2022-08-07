@@ -23,6 +23,7 @@ def login():
   host_user = get_or_create_host_user(auth_data) # Get or create a HostUser based on their spotify profile data
   
   # if authentication was not successful
+  print(f"host_user {host_user}")
   if not host_user:
     return redirect('/demo') # redirect to demo page
 
