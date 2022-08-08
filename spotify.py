@@ -176,7 +176,7 @@ def get_or_create_guest_user(phone_number):
   # If the user is not in the database
   if not guest_user:
     # Create HostUser object
-    guest_user = GuestUser(phone_number=phone_number)
+    guest_user = GuestUser(id=phone_number, phone_number=phone_number)
     db.session.add(guest_user) # Add HostUser to Database
     db.session.commit() 
 
