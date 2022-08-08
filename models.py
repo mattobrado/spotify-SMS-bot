@@ -15,7 +15,7 @@ class GuestUser(db.Model):
   
   __tablename__ = 'guest_users'
 
-  id = db.Column(db.Text, primary_key=True)
+  id = db.Column(db.Text, primary_key=True, autoincrement=True)
   phone_number = db.Column(db.Text, unique=True)
   active_playlist_id = db.Column(db.Text)
   user_type = db.Column(db.String(32), nullable=False)
