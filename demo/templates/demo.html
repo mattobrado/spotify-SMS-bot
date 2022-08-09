@@ -2,19 +2,27 @@
 {% from 'bootstrap/form.html' import render_form %}
 
 {% block content %}
-<h6>In compliance with the Spotify Developer Policy, <em class="text-primary">users must be explicitly added</em> before their account data can be accessed.</h6>
-<p>If you wish to continue, please provide the email address associated with your Spotify account.</p>
-<form method="POST">
-  {{ form.hidden_tag() }}
-  <div class="container"></div>
-      {% for field in form if field.widget.input_type != 'hidden' %}
-        {% for error in field.errors %}
-          <span class="text-danger">{{ error }}</span>
+<div class="container">
+  <div class="row w-100 ratio ratio-16x9">
+    <div class="embed-responsive embed-responsive-16by9 ratio ratio-16x9">
+      <iframe class="embed-responsive-item border border-secondary border-2 rounded-2" src="https://www.youtube.com/embed/ItRp3I7AjcU" allowfullscreen></iframe>
+    </div> 
+  </div>
+</div>
+<div class="container clearfix mt-3">
+  <h6>In compliance with the Spotify Developer Policy, <em class="text-primary">users must be explicitly added</em> before their account data can be accessed.</h6>
+  <p>If you wish to continue, please provide the email address associated with your Spotify account.</p>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="container"></div>
+        {% for field in form if field.widget.input_type != 'hidden' %}
+          {% for error in field.errors %}
+            <span class="text-danger">{{ error }}</span>
+          {% endfor %}
+          {{ field(placeholder=field.label.text, class="form-control") }}
         {% endfor %}
-        {{ field(placeholder=field.label.text, class="form-control") }}
-      {% endfor %}
-      <button class="btn btn-primary float-end">Add Me</button> 
-  </div> 
-</form>
-
+        <button class="btn btn-primary float-end">Add Me</button> 
+    </div> 
+  </form>
+</div>
 {% endblock %}
