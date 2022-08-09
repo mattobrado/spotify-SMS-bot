@@ -1,0 +1,14 @@
+{% extends 'header.html' %}
+
+{% block display_name %}{{ host_user.display_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Tutorial</h1>
+  <div class="row w-100 ratio ratio-16x9">
+    <div class="embed-responsive embed-responsive-16by9 ratio ratio-16x9">
+      <iframe class="embed-responsive-item border border-secondary border-2 rounded-2" src="https://www.youtube.com/embed/ItRp3I7AjcU" allowfullscreen></iframe>
+    </div> 
+  </div>
+</div>
+{% endblock %}

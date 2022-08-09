@@ -153,3 +153,14 @@ def get_host_user_from_session():
     return None
 
   return HostUser.query.filter_by(id=session['host_user_id']).first() # Get host_user using host_user_id in session
+
+@ui.route('/tutorial', methods = ['GET', 'POST'])
+def tutorial():
+  """Show the tutuorial video"""
+  host_user = get_host_user_from_session() # Get the host user object from id stored in session
+
+  # Prevent users from jumping ahead to user interface without authorizing first
+  if not host_user:
+    return redirect('/auth')
+
+  return render_template('tutorial.html', host_user=host_user)
